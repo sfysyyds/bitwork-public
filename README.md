@@ -14,12 +14,12 @@ Use Node 22.13+ and install this small package in a clean checkout with `npm ins
 
 ```powershell
 $env:VITE_WORKBENCH_HOST = 'https://bitwork.mossyibex4.chatgpt.site'
-$env:PAGES_BASE_PATH = '/bitwork-public/'
+$env:PAGES_BASE_PATH = '/'
 npm run prepublish
 npm run build
 npm run preview
 ```
 
-`npm run publish:build` is the publish gate: it fails if the HTTPS workbench origin/base path is missing or invalid, the snapshot has not been refreshed, a non-public field appears, a media URL still points at `/api/`, a referenced static asset is missing, or the built output contains a live API reference/unexpected file. `PAGES_BASE_PATH` defaults to `/bitwork-public/` for a GitHub Pages project site. Use `/` only if the repository later serves from a custom-domain root.
+`npm run publish:build` is the publish gate: it fails if the HTTPS workbench origin/base path is missing or invalid, the snapshot has not been refreshed, a non-public field appears, a media URL still points at `/api/`, a referenced static asset is missing, or the built output contains a live API reference/unexpected file. PAGES_BASE_PATH defaults to /bitwork-public/ so the existing GitHub Pages project URL remains valid until cutover. Build the custom-domain version with /; it includes CNAME for bitwork.top. The login link currently stays on https://bitwork.mossyibex4.chatgpt.site/login; change it to https://work.bitwork.top/login only after the Cloudflare backend and custom-domain route are live and verified.
 
 The published home/resource/detail pages are plain HTML/CSS/JS and static media. Each published resource gets a generated `resources/<id>/index.html`, so direct URL visits and refreshes on GitHub Pages do not depend on a server-side route or SPA-only history fallback.

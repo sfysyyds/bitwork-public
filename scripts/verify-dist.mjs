@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dist = path.join(root, "dist");
 const manifest = JSON.parse(await readFile(path.join(root, "src", "data", "resources.json"), "utf8"));
-const allowed = /^(?:index\.html|favicon\.svg|resources\/(?:index\.html|[a-f0-9-]+\/index\.html)|assets\/[A-Za-z0-9._-]+|fonts\/HarmonyOS-Sans-LICENSE\.txt|media\/[a-f0-9-]+-(?:cover|shot-\d+)\.(?:jpg|png|webp|gif|avif))$/i;
+const allowed = /^(?:CNAME|index\.html|favicon\.svg|resources\/(?:index\.html|[a-f0-9-]+\/index\.html)|assets\/[A-Za-z0-9._-]+|fonts\/HarmonyOS-Sans-LICENSE\.txt|media\/[a-f0-9-]+-(?:cover|shot-\d+)\.(?:jpg|png|webp|gif|avif))$/i;
 const files = [];
 async function walk(directory, prefix = "") {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -16,6 +16,7 @@ async function walk(directory, prefix = "") {
 }
 await walk(dist);
 if (!files.length || files.some(file => !allowed.test(file))) throw new Error("Static output contains an unexpected file or directory.");
+if ((await readFile(path.join(dist, "CNAME"), "utf8")).trim() !== "bitwork.top") throw new Error("Static output must publish only the approved bitwork.top custom domain.");
 if (files.some(file => file.toLowerCase().endsWith(".rpy"))) throw new Error("Static output must never contain Ren'Py source files.");
 const published = new Set(manifest.items.flatMap(item => [
   `resources/${item.id}/index.html`,
