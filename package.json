@@ -1,0 +1,22 @@
+{
+  "name": "bitwork-public-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "snapshot": "node scripts/snapshot-public-resources.mjs",
+    "build": "node scripts/generate-pages.mjs && vite build && node scripts/verify-dist.mjs",
+    "prepublish": "node scripts/preflight.mjs",
+    "publish:build": "npm run prepublish && npm run build",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "lucide-react": "1.31.0",
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "6.0.2",
+    "vite": "8.0.13"
+  }
+}
