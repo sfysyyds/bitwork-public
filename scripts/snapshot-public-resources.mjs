@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const source = "https://bitwork.mossyibex4.chatgpt.site";
+const source = "https://work.bitwork.top";
 const allowedImageTypes = new Map([
   ["image/jpeg", "jpg"], ["image/png", "png"], ["image/webp", "webp"],
   ["image/gif", "gif"], ["image/avif", "avif"],
