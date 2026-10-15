@@ -15,6 +15,10 @@ if (!base.startsWith("/") || !base.endsWith("/")) throw new Error("Publish block
 
 const manifest = JSON.parse(await readFile(path.join(root, "src", "data", "resources.json"), "utf8"));
 if (!manifest.snapshotAt || manifest.snapshotAt === "pending" || !Array.isArray(manifest.items)) throw new Error("Publish blocked: refresh the explicit public resources snapshot first.");
+const publication = JSON.parse(await readFile(path.join(root, "public", "publication.json"), "utf8"));
+if (Object.keys(publication).sort().join(",") !== "publicRevision,publishId,publishedAt") throw new Error("Publish blocked: publication marker has unexpected fields.");
+if (!/^(?:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}|[a-f0-9]{40}|[a-f0-9]{64})$/i.test(publication.publishId || "")) throw new Error("Publish blocked: snapshot lacks a valid publication id.");
+if (!Number.isFinite(Date.parse(publication.publishedAt)) || !/^[a-f0-9]{64}$/i.test(publication.publicRevision || "")) throw new Error("Publish blocked: snapshot lacks its timestamp or public revision.");
 const allowed = new Set(["id", "title", "english", "genre", "version", "intro", "downloadUrl", "coverUrl", "screenshots", "description", "installation", "changelog", "credits"]);
 for (const item of manifest.items) {
   if (Object.keys(item).some(key => !allowed.has(key))) throw new Error(`Publish blocked: non-public field detected in ${item.id}.`);

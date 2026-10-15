@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "snapshot": "node scripts/snapshot-public-resources.mjs",
+    "check:snapshot": "node scripts/check-public-snapshot.mjs",
     "build": "node scripts/generate-pages.mjs && vite build && node scripts/verify-dist.mjs",
     "prepublish": "node scripts/preflight.mjs",
     "publish:build": "npm run prepublish && npm run build",
