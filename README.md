@@ -15,7 +15,7 @@ Use Node 22 and install this small package in a clean checkout with `npm ci` (do
 ```powershell
 $env:VITE_WORKBENCH_HOST = 'https://bitwork.mossyibex4.chatgpt.site'
 $env:PAGES_BASE_PATH = '/'
-npm run prepublish
+npm run check:publish
 npm run build
 npm run preview
 ```

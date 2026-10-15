@@ -7,8 +7,8 @@
     "snapshot": "node scripts/snapshot-public-resources.mjs",
     "check:snapshot": "node scripts/check-public-snapshot.mjs",
     "build": "node scripts/generate-pages.mjs && vite build && node scripts/verify-dist.mjs",
-    "prepublish": "node scripts/preflight.mjs",
-    "publish:build": "npm run prepublish && npm run build",
+    "check:publish": "node scripts/preflight.mjs",
+    "publish:build": "npm run check:publish && npm run build",
     "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {
