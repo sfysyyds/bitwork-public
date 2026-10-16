@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState, type CSSProperties } from "react";
-import { ArrowDownToLine, ArrowUpRight, X } from "lucide-react";
+import { X } from "lucide-react";
+import ResourceActions from "./ResourceActions";
 import type { ResourceItem } from "../types";
 import { sitePath } from "../site-path";
 
@@ -37,7 +38,6 @@ export default function ResourceArticle({ resource }: { resource: ResourceItem }
   const [activeShot, setActiveShot] = useState<number | null>(null);
   const shots = (resource.screenshots ?? []).filter(shot => resourceMediaUrl(shot.url));
   const cover = resourceMediaUrl(resource.coverUrl);
-  const download = resourceMediaUrl(resource.downloadUrl);
   const intro = resource.intro?.trim() ?? "";
   const description = resource.description?.trim() || intro;
   const summary = intro && intro !== description ? intro : "";
@@ -79,9 +79,7 @@ export default function ResourceArticle({ resource }: { resource: ResourceItem }
         <h1>{resource.title}</h1>
         {resource.english && <p className="resource-original-title">{resource.english}</p>}
         {resource.version?.trim() && <dl className="resource-facts"><div><dt>版本</dt><dd>{resource.version.trim()}</dd></div></dl>}
-        {download && <a className="resource-download" href={download} target="_blank" rel="noopener noreferrer">
-          <ArrowDownToLine size={18}/>获取汉化资源<ArrowUpRight size={15}/>
-        </a>}
+        <ResourceActions downloadUrl={resource.downloadUrl} articleUrl={resource.articleUrl}/>
       </div>
     </header>
 

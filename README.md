@@ -31,3 +31,11 @@ The custom domain and `CNAME` file are `bitwork.top`. Every detail route is gene
 See [PUBLISHING.md](./PUBLISHING.md) for the short operator and maintenance runbook.
 
 The published home/resource/detail pages are plain HTML/CSS/JS and static media. Each published resource gets a generated `resources/<id>/index.html`, so direct URL visits and refreshes on GitHub Pages do not depend on a server-side route or SPA-only history fallback.
+
+
+## 2026-10-16 资源详情操作
+- 详情共用 ResourceActions：直接下载 / 代理下载 / 查看文章。后台每个作品有独立 articleUrl（HTTPS、无URL凭据）；D1增量0009仅添加默认空的 article_url，不修改旧资料。公开快照和发布预检允许该字段，未填写文章时按钮禁用，不猜测文章链接。
+- 代理仅接受公开 GitHub Release 文件直链，不接受查询参数、凭据或任意URL。清单为 ghproxy.net、ghfast.top、gh-proxy.com（来源见 resource-downloads.ts；不是所有互联网公益站点）。访客点击后才并行测试，omit credentials/no-referrer，每站读取最多128 KiB、6秒超时；必须206且可验证 Content-Range，不用不透明 no-cors 回应冒充测速。按读取字节/耗时选择本次小样本最快节点，随后浏览器发起下载。跨域受限、错误HTML、忽略Range、超时全失败时明确建议直链，不谎称找到最快节点。
+- 只在访客浏览器测试/下载，不经过本站 Worker/R2；第三方代理可能看到公开文件地址和访客IP，不能保证持续速度或文件完整性。切换作品/离开时取消测速。未新增后台代理下载或付费服务。
+- 检查：node --experimental-strip-types scripts/check-resource-downloads.mjs；node scripts/check-resource-wiki.mjs --target . --probe --expect-fixed --expect-article；node scripts/check-site-publication.mjs；TypeScript及完整构建。公开站运行 check:snapshot、publish:build。四角色追加 resource-actions/；回退 sh ROLLBACK.sh --resource-actions TARGET_COPY_DIRECTORY（子目录 backend/ 和 public/）。源码回退保留兼容新增列，不执行DROP或覆盖用户资料。
+- 最新远端提交、Worker版本、正式Pages工作流和线上回读以 outputs/resource-actions/status.json 为准。若本地GitHub传输失败但REST发布成功，本地原始检出仍可停在旧基线，不能把它误当线上最新源码；本轮公共源码副本在 work/resource-actions-public。

@@ -11,7 +11,7 @@ const allowedImageTypes = new Map([
   ["image/gif", "gif"], ["image/avif", "avif"],
 ]);
 const allowedFields = new Set([
-  "id", "title", "english", "genre", "version", "intro", "downloadUrl", "coverUrl", "screenshots",
+  "id", "title", "english", "genre", "version", "intro", "downloadUrl", "articleUrl", "coverUrl", "screenshots",
   "description", "installation", "changelog", "credits",
 ]);
 
@@ -23,6 +23,8 @@ export function safeId(value) {
 export function toPublicResource(row, { coverUrl = "", screenshots = [] } = {}) {
   const downloadUrl = typeof row.downloadUrl === "string" ? row.downloadUrl : "";
   if (downloadUrl && new URL(downloadUrl).protocol !== "https:") throw new Error(`Refusing a non-HTTPS download link for ${row.id}.`);
+  const articleUrl = typeof row.articleUrl === "string" ? row.articleUrl : "";
+  if (articleUrl) { const url = new URL(articleUrl); if (url.protocol !== "https:" || url.username || url.password) throw new Error(`Invalid public article link for ${row.id}.`); }
   return {
     id: safeId(row.id),
     title: typeof row.title === "string" ? row.title : "",
@@ -31,6 +33,7 @@ export function toPublicResource(row, { coverUrl = "", screenshots = [] } = {}) 
     version: typeof row.version === "string" ? row.version : "",
     intro: typeof row.intro === "string" ? row.intro : "",
     downloadUrl,
+    articleUrl,
     coverUrl,
     screenshots: screenshots.map(shot => ({ url: shot.url, caption: typeof shot.caption === "string" ? shot.caption : "" })),
     description: typeof row.description === "string" ? row.description : "",

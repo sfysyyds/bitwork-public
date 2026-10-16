@@ -19,7 +19,7 @@ const publication = JSON.parse(await readFile(path.join(root, "public", "publica
 if (Object.keys(publication).sort().join(",") !== "publicRevision,publishId,publishedAt") throw new Error("Publish blocked: publication marker has unexpected fields.");
 if (!/^(?:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}|[a-f0-9]{40}|[a-f0-9]{64})$/i.test(publication.publishId || "")) throw new Error("Publish blocked: snapshot lacks a valid publication id.");
 if (!Number.isFinite(Date.parse(publication.publishedAt)) || !/^[a-f0-9]{64}$/i.test(publication.publicRevision || "")) throw new Error("Publish blocked: snapshot lacks its timestamp or public revision.");
-const allowed = new Set(["id", "title", "english", "genre", "version", "intro", "downloadUrl", "coverUrl", "screenshots", "description", "installation", "changelog", "credits"]);
+const allowed = new Set(["id", "title", "english", "genre", "version", "intro", "downloadUrl", "articleUrl", "coverUrl", "screenshots", "description", "installation", "changelog", "credits"]);
 for (const item of manifest.items) {
   if (Object.keys(item).some(key => !allowed.has(key))) throw new Error(`Publish blocked: non-public field detected in ${item.id}.`);
   const urls = [item.coverUrl, ...(item.screenshots || []).map(shot => shot.url)].filter(Boolean);
@@ -27,6 +27,7 @@ for (const item of manifest.items) {
     if (!url.startsWith("/media/") || url.includes("..") || url.includes("/api/")) throw new Error(`Publish blocked: non-static media URL in ${item.id}.`);
     await stat(path.join(root, "public", url.slice(1)));
   }
+  if (item.articleUrl) { const article = new URL(item.articleUrl); if (article.protocol !== "https:" || article.username || article.password) throw new Error(`Publish blocked: unsafe article URL in ${item.id}.`); }
   if (item.downloadUrl && new URL(item.downloadUrl).protocol !== "https:") throw new Error(`Publish blocked: non-HTTPS download URL in ${item.id}.`);
 }
 console.log(`Publish preflight passed: host=${host.origin}, base=${base}, public resources=${manifest.items.length}.`);
