@@ -3,6 +3,7 @@ import Home from "./pages/Home";
 import Resources from "./pages/Resources";
 import MosaicTransitions from "./components/MosaicTransitions";
 import "./styles/base.css";
+import "./styles/mosaic.css";
 
 function route() {
   const base = import.meta.env.BASE_URL;

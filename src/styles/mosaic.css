@@ -1,0 +1,18 @@
+.mosaic-filters { position: absolute; pointer-events: none; }
+::view-transition { pointer-events: none; }
+::view-transition-group(root) { animation-duration: 280ms; }
+::view-transition-image-pair(root) { isolation: isolate; }
+::view-transition-old(root) { animation: browser-mosaic-out 280ms ease both; mix-blend-mode: normal; }
+::view-transition-new(root) { animation: browser-mosaic-in 280ms ease both; mix-blend-mode: normal; }
+@keyframes browser-mosaic-out {
+  0%, 39% { opacity: 1; filter: none; }
+  40%, 100% { opacity: 1; filter: url(#browser-mosaic); }
+}
+@keyframes browser-mosaic-in {
+  0% { opacity: 0; filter: url(#browser-mosaic); }
+  55% { opacity: .8; filter: url(#browser-mosaic); }
+  100% { opacity: 1; filter: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(root), ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }
+}

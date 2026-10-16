@@ -14,7 +14,7 @@ if (!base.startsWith("/") || !base.endsWith("/")) throw new Error("PAGES_BASE_PA
 export default defineConfig({
   base,
   cacheDir: resolve(root, ".vite-cache"),
-  plugins: [react()],
+  plugins: [react(), { name: "mosaic-navigation", transformIndexHtml: () => [{ tag: "style", children: "@view-transition { navigation: auto; }", injectTo: "head-prepend" }] }],
   build: {
     outDir: resolve(root, "dist"),
     emptyOutDir: true,
