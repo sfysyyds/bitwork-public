@@ -28,6 +28,6 @@ for (const item of manifest.items) {
     await stat(path.join(root, "public", url.slice(1)));
   }
   if (item.articleUrl) { const article = new URL(item.articleUrl); if (article.protocol !== "https:" || article.username || article.password) throw new Error(`Publish blocked: unsafe article URL in ${item.id}.`); }
-  if (item.downloadUrl && new URL(item.downloadUrl).protocol !== "https:") throw new Error(`Publish blocked: non-HTTPS download URL in ${item.id}.`);
+  if (item.downloadUrl) { const download = new URL(item.downloadUrl); if (download.protocol !== "https:" || download.username || download.password) throw new Error(`Publish blocked: unsafe download URL in ${item.id}.`); }
 }
 console.log(`Publish preflight passed: host=${host.origin}, base=${base}, public resources=${manifest.items.length}.`);

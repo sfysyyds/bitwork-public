@@ -22,7 +22,7 @@ export function safeId(value) {
 
 export function toPublicResource(row, { coverUrl = "", screenshots = [] } = {}) {
   const downloadUrl = typeof row.downloadUrl === "string" ? row.downloadUrl : "";
-  if (downloadUrl && new URL(downloadUrl).protocol !== "https:") throw new Error(`Refusing a non-HTTPS download link for ${row.id}.`);
+  if (downloadUrl) { const url = new URL(downloadUrl); if (url.protocol !== "https:" || url.username || url.password) throw new Error(`Refusing an unsafe public download link for ${row.id}.`); }
   const articleUrl = typeof row.articleUrl === "string" ? row.articleUrl : "";
   if (articleUrl) { const url = new URL(articleUrl); if (url.protocol !== "https:" || url.username || url.password) throw new Error(`Invalid public article link for ${row.id}.`); }
   return {
