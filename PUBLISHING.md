@@ -31,3 +31,12 @@ The workflow also verifies the HTTPS backend origin, publication marker, public-
 - `unrecognized stale route`: inspect the route manually; do not force-delete it as part of publishing.
 - Workflow dispatch rejected: verify the backend-only repository token has Actions read/write access and `public-site.yml` exists on the default branch.
 - Backend reports pending: inspect the run with the exact `publish_id`; a build/deploy failure must not be reported as success.
+
+
+## Homepage contact and support QR codes
+
+The homepage footer uses CommunityCodes: two compact contact/support entries with a QR on the right, opening a native dialog on click. The join QR is a QQ personal-contact code, not a fabricated group-invite link; the sponsor QR is a WeChat payment code. Nothing redirects, joins, logs in, or pays automatically. The existing two-line update timestamp stays on the left. Mobile footer wraps rather than hiding or clipping the entries; QR codes never get mosaic/blur effects.
+
+Only rebuilt black-on-white SVG and PNG assets under public/assets/community/ are published. Raw App screenshots, status bars, avatars and names are not uploaded. The QR payloads were decoded locally and re-encoded without changing their bytes; each uses H correction and four quiet modules. Independent decoding matched both original payloads at 240/288/320/384px. Runtime has no new dependency. Checks: node scripts/check-community-codes.mjs and npm run publish:build.
+
+To change a code, use the new original screenshot as data, decode it locally (zxing-cpp 3.1.1), re-encode deterministically (qrcode 8.2), and compare decoded bytes against the original before updating both assets and scripts/community-codes.json. Never use generative drawing, logo overlays or filters inside the QR matrix. The 64px footer image is an entry/preview; use the enlarged code to scan. Keep a provenance/checksum receipt but do not put original screenshots or plaintext payment/contact payloads in logs. App acceptance and expiring QR payloads must be checked by the owner; byte-level decode verification is not a completed payment or friend request.

@@ -7,7 +7,7 @@ const dist = path.join(root, "dist");
 const manifest = JSON.parse(await readFile(path.join(root, "src", "data", "resources.json"), "utf8"));
 const publication = JSON.parse(await readFile(path.join(root, "public", "publication.json"), "utf8"));
 if (Object.keys(publication).sort().join(",") !== "publicRevision,publishId,publishedAt" || !publication.publishId || !Number.isFinite(Date.parse(publication.publishedAt)) || !/^[a-f0-9]{64}$/i.test(publication.publicRevision || "")) throw new Error("Static output must include a verifiable publication marker with only public fields.");
-const allowed = /^(?:CNAME|index\.html|favicon\.svg|publication\.json|resources\/(?:index\.html|[a-f0-9-]+\/index\.html)|assets\/[A-Za-z0-9._-]+|fonts\/HarmonyOS-Sans-LICENSE\.txt|media\/[a-f0-9-]+-(?:cover|shot-\d+)\.(?:jpg|png|webp|gif|avif))$/i;
+const allowed = /^(?:CNAME|index\.html|favicon\.svg|publication\.json|resources\/(?:index\.html|[a-f0-9-]+\/index\.html)|assets\/(?:[A-Za-z0-9._-]+|community\/(?:join|sponsor)\.(?:svg|png))|fonts\/HarmonyOS-Sans-LICENSE\.txt|media\/[a-f0-9-]+-(?:cover|shot-\d+)\.(?:jpg|png|webp|gif|avif))$/i;
 const files = [];
 async function walk(directory, prefix = "") {
   for (const entry of await readdir(directory, { withFileTypes: true })) {

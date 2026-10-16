@@ -1,0 +1,38 @@
+[
+  {
+    "name": "join",
+    "originalSha256": "75102e25303396b247a8ae8b03d0c148e736e3be35c49e5702d62d2f8c84a38a",
+    "payloadSha256": "23ded923f5660269ad6111be7373576d7c6ddc58858b1f94261dec5ea1457b0d",
+    "payloadBytes": 30,
+    "matrixIncludingQuietZone": 41,
+    "quietZoneModules": 4,
+    "errorCorrection": "H",
+    "pngSha256": "9b7397f310343cf654e0f1052b97db5ed69ae33eec8f6e20b6710eacc8b9009d",
+    "svgSha256": "9ac150df4ea3ff0fc234b976d2e3bb15db6418ab199bec7e5c28c215d2cf2708",
+    "decodedOriginalEqualsRebuilt": true,
+    "scanSizesPassed": [
+      240,
+      288,
+      320,
+      384
+    ]
+  },
+  {
+    "name": "sponsor",
+    "originalSha256": "c098db34a70b37e7e43f89d5ba21d3009280abb7399bc3c40dbd94fd111d6ff3",
+    "payloadSha256": "76d2c08043f401a972a6d344764e2a646f2d8d4826c17bf255c9637aad265d69",
+    "payloadBytes": 53,
+    "matrixIncludingQuietZone": 49,
+    "quietZoneModules": 4,
+    "errorCorrection": "H",
+    "pngSha256": "dbd9400800776119bba29870244cc18e7e2739eae315c18e4c1a936101710c0c",
+    "svgSha256": "186fba7d4d42b176d0ef8c1108af7d25b11aa55051ab78a4b057c36e7ea7dae8",
+    "decodedOriginalEqualsRebuilt": true,
+    "scanSizesPassed": [
+      240,
+      288,
+      320,
+      384
+    ]
+  }
+]

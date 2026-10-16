@@ -3,7 +3,9 @@ import { Brand } from "../components/Brand";
 import BitScene from "../components/BitScene";
 import PixelText from "../components/PixelText";
 import { sitePath, workbenchUrl } from "../site-path";
+import CommunityCodes from "../components/CommunityCodes";
 import "../styles/homepage.css";
+import "../styles/community-codes.css";
 
 const updatedAt = __SITE_UPDATED_AT__;
 const updatedLabel = new Intl.DateTimeFormat("zh-CN", { timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(updatedAt));
@@ -23,6 +25,6 @@ export default function Home() {
         <a className="button primary" href={login || undefined} aria-disabled={!login}><LogIn size={19} />账号登录</a>
       </div>
     </section>
-    <footer className="landing-footer"><div className="landing-release"><span>更新时间</span><time dateTime={updatedAt}>{updatedLabel}</time></div></footer>
+    <footer className="landing-footer"><div className="landing-release"><span>更新时间</span><time dateTime={updatedAt}>{updatedLabel}</time></div><CommunityCodes/></footer>
   </main>;
 }
