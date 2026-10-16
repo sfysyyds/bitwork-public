@@ -75,11 +75,22 @@ function getPublishId() {
   return value;
 }
 
+async function fetchPublic(url) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(30000) });
+      if (attempt || response.status < 500) return response;
+      await response.body?.cancel();
+    } catch (error) { if (attempt) throw error; }
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+}
+
 async function copyPublicImage(value, name) {
   if (!value) return "";
   const match = /^\/api\/resource-media\/([a-f0-9-]{36})$/i.exec(value);
   if (!match) throw new Error(`Refusing non-public or unexpected media URL: ${value}`);
-  const response = await fetch(`${source}${value}`, { signal: AbortSignal.timeout(30000) });
+  const response = await fetchPublic(`${source}${value}`);
   if (!response.ok) throw new Error(`Public image fetch failed (${response.status}): ${value}`);
   const mime = (response.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
   const extension = allowedImageTypes.get(mime);
@@ -97,7 +108,7 @@ async function copyPublicImage(value, name) {
 
 async function snapshot() {
   const publishId = getPublishId();
-  const response = await fetch(`${source}/api/site-catalog`, { signal: AbortSignal.timeout(30000) });
+  const response = await fetchPublic(`${source}/api/site-catalog`);
   if (!response.ok) throw new Error(`Approved public catalog fetch failed (${response.status}).`);
   const body = await response.json();
   if (!Array.isArray(body.items) || !/^[a-f0-9]{64}$/i.test(body.publicRevision || "")) {
