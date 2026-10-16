@@ -18,8 +18,7 @@ export default function CommunityCodes() {
   return <>
     <div className="community-codes" aria-label="联系与支持">
       {codes.map(code => <button className="community-code" type="button" key={code.key} onClick={() => show(code)} aria-label={`${code.title}，放大二维码`} aria-haspopup="dialog">
-        <span className="community-code-label"><img className="community-platform-icon" src={sitePath(`assets/${code.icon}.svg`)} alt={code.platform} width={16} height={16}/><span>{code.title}</span></span>
-        <img src={sitePath(`assets/community/${code.key}.svg`)} alt="" width={64} height={64}/>
+        <span className="community-code-label"><img className="community-platform-icon" src={sitePath(`assets/${code.icon}.svg`)} alt={code.platform} width={28} height={28}/><span>{code.title}</span></span>
       </button>)}
     </div>
     <dialog className="community-dialog" ref={dialog} aria-labelledby={titleId} onClose={() => setSelected(null)} onClick={event => { if (event.target === dialog.current) close(); }}>
