@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -62,7 +62,7 @@ export async function pruneGeneratedArtifacts(siteRoot, activeIds, activeMedia) 
   try { mediaEntries = await readdir(mediaDir, { withFileTypes: true }); }
   catch (error) { if (error.code === "ENOENT") return; throw error; }
   for (const entry of mediaEntries) {
-    if (!entry.isFile() || !/^[a-f0-9-]{36}-(?:cover|shot-\d+)\.(?:jpg|png|webp|gif|avif)$/i.test(entry.name)) continue;
+    if (!entry.isFile() || !/^[a-f0-9-]{36}-(?:cover|shot-\d+)(?:-[a-f0-9]{16})?\.(?:jpg|png|webp|gif|avif)$/i.test(entry.name)) continue;
     if (!activeMedia.has(`/media/${entry.name}`)) await rm(path.join(mediaDir, entry.name), { force: true });
   }
 }
@@ -88,7 +88,8 @@ async function copyPublicImage(value, name) {
   if (declared > 20 * 1024 * 1024) throw new Error(`Image exceeds 20 MiB limit: ${value}`);
   const bytes = Buffer.from(await response.arrayBuffer());
   if (bytes.length > 20 * 1024 * 1024) throw new Error(`Image exceeds 20 MiB limit: ${value}`);
-  const file = `${name}.${extension}`;
+  const fingerprint = createHash("sha256").update(bytes).digest("hex").slice(0, 16);
+  const file = `${name}-${fingerprint}.${extension}`;
   await mkdir(path.join(root, "public", "media"), { recursive: true });
   await writeFile(path.join(root, "public", "media", file), bytes);
   return `/media/${file}`;

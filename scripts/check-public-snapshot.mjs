@@ -19,12 +19,15 @@ try {
   const staleImage = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa-cover.png";
   const currentImage = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb-cover.png";
   const customImage = "custom-cover.png";
-  for (const name of [staleImage, currentImage, customImage]) await writeFile(path.join(media, name), "image");
+  const staleFingerprint = staleRoute + "-cover-1111111111111111.png", currentFingerprint = currentRoute + "-cover-2222222222222222.png";
+  for (const name of [staleImage, currentImage, customImage, staleFingerprint, currentFingerprint]) await writeFile(path.join(media, name), "image");
 
-  await pruneGeneratedArtifacts(temp, new Set([currentRoute]), new Set([`/media/${currentImage}`]));
+  await pruneGeneratedArtifacts(temp, new Set([currentRoute]), new Set([`/media/${currentImage}`, `/media/${currentFingerprint}`]));
   await assert.rejects(readFile(path.join(resources, staleRoute, "index.html")));
   assert.match(await readFile(path.join(resources, currentRoute, "index.html"), "utf8"), /current/);
   await assert.rejects(readFile(path.join(media, staleImage)));
+  await assert.rejects(readFile(path.join(media, staleFingerprint)));
+  assert.equal(await readFile(path.join(media, currentFingerprint), "utf8"), "image");
   assert.equal(await readFile(path.join(media, currentImage), "utf8"), "image");
   assert.equal(await readFile(path.join(media, customImage), "utf8"), "image");
 
