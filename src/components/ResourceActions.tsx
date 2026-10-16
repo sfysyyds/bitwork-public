@@ -26,7 +26,7 @@ export default function ResourceActions({ downloadUrl, articleUrl }: { downloadU
       <button type="button" className="resource-download resource-action-secondary" disabled={busy || !githubAsset(direct)} onClick={() => void download()} title="点击后向第三方代理发送公开文件地址；每个节点最多读取128 KiB样本，不使用登录凭据"><Zap size={17}/>{busy ? "测速中…" : "代理下载"}</button>
       {article ? <a className="resource-download resource-action-secondary" href={article} target="_blank" rel="noopener noreferrer"><FileText size={17}/>查看文章<ArrowUpRight size={14}/></a> : <button className="resource-download resource-action-secondary" disabled title="尚未填写文章地址"><FileText size={17}/>查看文章</button>}
     </div>
-    {githubAsset(direct) && <small className="resource-action-note">代理由第三方提供，仅点击后测速；也可直接下载原始文件。</small>}
+    {githubAsset(direct) && <small className="resource-action-note">代理由第三方提供</small>}
     <p className="resource-action-status" role="status" aria-live="polite">{status}</p>
   </div>;
 }
