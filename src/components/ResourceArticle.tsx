@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import ResourceActions from "./ResourceActions";
 import type { ResourceItem } from "../types";
 import { sitePath } from "../site-path";
+import { resourceImageProps } from "../resource-images";
 
 export function resourceMediaUrl(value: string | undefined) {
   const url = value?.trim();
@@ -22,8 +23,8 @@ export function resourceCoverStyle(id: string): CSSProperties {
   return { "--resource-cover-transition": `resource-cover-${id.replace(/[^a-zA-Z0-9_-]/g, "-")}` } as CSSProperties;
 }
 
-export function CoverPixels({ src }: { src: string }) {
-  return [2, 4, 8].map(size => <img key={size} className={`resource-cover-pixels resource-cover-pixels-${size}`} src={src} alt="" aria-hidden="true" loading="lazy" />);
+export function CoverPixels({ src, sizes }: { src: string; sizes: string }) {
+  return [2, 4, 8].map(size => <img key={size} className={`resource-cover-pixels resource-cover-pixels-${size}`} {...resourceImageProps(src, sizes)} alt="" aria-hidden="true" loading="lazy" />);
 }
 
 function Section({ id, title, children }: { id: string; title: string; children: string }) {
@@ -70,8 +71,8 @@ export default function ResourceArticle({ resource }: { resource: ResourceItem }
     <header className="resource-hero">
       <div className="resource-hero-cover" style={resourceCoverStyle(resource.id)}>
         {cover ? <>
-          <CoverPixels src={cover}/>
-          <img className="resource-cover-original" src={cover} alt={`${resource.title}封面`} />
+          <CoverPixels src={resource.coverUrl} sizes="(max-width: 600px) calc(100vw - 40px), 510px"/>
+          <img className="resource-cover-original" {...resourceImageProps(resource.coverUrl, "(max-width: 600px) calc(100vw - 40px), 510px")} alt={`${resource.title}封面`} fetchPriority="high" />
         </> : <span role="img" aria-label="暂无封面，显示作品标题首字">{resource.title.slice(0, 1) || "?"}</span>}
       </div>
       <div className="resource-hero-copy">
@@ -95,7 +96,7 @@ export default function ResourceArticle({ resource }: { resource: ResourceItem }
         {shots.length > 0 && <section className="resource-article-section" id="screenshots" aria-labelledby="screenshots-title">
           <h2 id="screenshots-title">游戏截图</h2>
           <div className="resource-gallery">{shots.map((shot, index) => <button className="resource-shot" type="button" key={`${shot.url}-${index}`} onClick={() => openShot(index)} aria-label={`放大查看截图 ${index + 1}`}>
-            <img src={resourceMediaUrl(shot.url)} alt={shot.caption || `${resource.title}截图 ${index + 1}`} loading="lazy" />
+            <img {...resourceImageProps(shot.url, "(max-width: 600px) calc(100vw - 40px), (max-width: 1100px) 40vw, 460px")} alt={shot.caption || `${resource.title}截图 ${index + 1}`} loading="lazy" />
             <span>{shot.caption?.trim() || `截图 ${index + 1}`}</span>
           </button>)}</div>
         </section>}
@@ -112,7 +113,7 @@ export default function ResourceArticle({ resource }: { resource: ResourceItem }
       </header>
       {selectedShot && <figure>
         <div className="resource-lightbox-image" onClick={event => { if (event.target === event.currentTarget) closeShot(); }}>
-          <img src={resourceMediaUrl(selectedShot.url)} alt={selectedShot.caption || `${resource.title}截图 ${(activeShot ?? 0) + 1}`} />
+          <img src={resourceMediaUrl(selectedShot.url)} alt={selectedShot.caption || `${resource.title}截图 ${(activeShot ?? 0) + 1}`} decoding="async" />
         </div>
         <figcaption className="resource-lightbox-caption">{selectedShot.caption?.trim() || `截图 ${(activeShot ?? 0) + 1}`}</figcaption>
       </figure>}

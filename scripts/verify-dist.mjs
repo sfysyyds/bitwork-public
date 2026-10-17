@@ -6,8 +6,9 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dist = path.join(root, "dist");
 const manifest = JSON.parse(await readFile(path.join(root, "src", "data", "resources.json"), "utf8"));
 const publication = JSON.parse(await readFile(path.join(root, "public", "publication.json"), "utf8"));
+const images = JSON.parse(await readFile(path.join(root, "src/data/images.json"), "utf8"));
 if (Object.keys(publication).sort().join(",") !== "publicRevision,publishId,publishedAt" || !publication.publishId || !Number.isFinite(Date.parse(publication.publishedAt)) || !/^[a-f0-9]{64}$/i.test(publication.publicRevision || "")) throw new Error("Static output must include a verifiable publication marker with only public fields.");
-const allowed = /^(?:CNAME|index\.html|robots\.txt|sitemap\.xml|favicon\.svg|publication\.json|resources\/(?:index\.html|[a-f0-9-]+\/index\.html)|assets\/(?:[A-Za-z0-9._-]+|community\/(?:join|sponsor)\.(?:svg|png))|fonts\/HarmonyOS-Sans-LICENSE\.txt|media\/[a-f0-9-]+-(?:cover|shot-\d+)(?:-[a-f0-9]{16})?\.(?:jpg|png|webp|gif|avif))$/i;
+const allowed = /^(?:CNAME|index\.html|robots\.txt|sitemap\.xml|favicon\.svg|publication\.json|resources\/(?:index\.html|[a-f0-9-]+\/index\.html)|assets\/(?:[A-Za-z0-9._-]+|community\/(?:join|sponsor)\.(?:svg|png))|fonts\/HarmonyOS-Sans-LICENSE\.txt|media\/[a-f0-9-]+-(?:cover|shot-\d+)(?:-[a-f0-9]{16})?(?:-w\d+-[a-f0-9]{12})?\.(?:jpg|png|webp|gif|avif))$/i;
 const files = [];
 async function walk(directory, prefix = "") {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -24,6 +25,14 @@ const published = new Set(manifest.items.flatMap(item => [
   `resources/${item.id}/index.html`,
   ...[item.coverUrl, ...(item.screenshots || []).map(shot => shot.url)].filter(Boolean).map(url => url.replace(/^\//, "")),
 ]));
+for (const [url, image] of Object.entries(images)) {
+  if (!published.has(url.replace(/^\//, ""))) throw new Error("Image variants must belong to an approved original.");
+  for (const variant of image.variants) {
+    const stem = url.replace(/\.[^.]+$/, "");
+    if (!variant.url.startsWith(`${stem}-w`) || !/^\/media\/[a-f0-9-]+-(?:cover|shot-\d+)-[a-f0-9]{16}-w\d+-[a-f0-9]{12}\.webp$/i.test(variant.url)) throw new Error("Invalid generated image path.");
+    published.add(variant.url.slice(1));
+  }
+}
 if (files.some(file => /^(?:media\/|resources\/[^/]+\/)/.test(file) && !published.has(file))) throw new Error("Static output contains an unpublished resource route or media file.");
 for (const item of manifest.items) {
   const route = `resources/${item.id}/index.html`;

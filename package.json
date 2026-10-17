@@ -3,10 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1",
+    "dev": "node scripts/optimize-images.mjs && vite --host 127.0.0.1",
     "snapshot": "node scripts/snapshot-public-resources.mjs",
     "check:snapshot": "node scripts/check-public-snapshot.mjs",
-    "build": "node scripts/generate-pages.mjs && vite build && node scripts/verify-dist.mjs && node scripts/check-seo.mjs",
+    "build": "node scripts/optimize-images.mjs && node scripts/generate-pages.mjs && vite build && node scripts/verify-dist.mjs && node scripts/check-seo.mjs && node scripts/check-image-loading.mjs . --expect-fixed",
     "check:publish": "node scripts/preflight.mjs",
     "publish:build": "npm run check:publish && npm run build",
     "preview": "vite preview --host 127.0.0.1"
@@ -18,7 +18,8 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "6.0.2",
-    "vite": "8.0.16",
-    "esbuild": "0.28.1"
+    "esbuild": "0.28.1",
+    "sharp": "0.35.5",
+    "vite": "8.0.16"
   }
 }
