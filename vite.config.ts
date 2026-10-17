@@ -2,9 +2,11 @@ import { existsSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import seoPages from "./scripts/seo-pages.mjs";
 
 const root = process.cwd();
 const base = process.env.PAGES_BASE_PATH || "/bitwork-public/";
+const updatedAt = process.env.SITE_UPDATED_AT || new Date().toISOString();
 const detailPages = readdirSync(resolve(root, "resources"), { withFileTypes: true })
   .filter(entry => entry.isDirectory() && existsSync(resolve(root, "resources", entry.name, "index.html")))
   .map(entry => [entry.name, resolve(root, "resources", entry.name, "index.html")] as const);
@@ -14,7 +16,7 @@ if (!base.startsWith("/") || !base.endsWith("/")) throw new Error("PAGES_BASE_PA
 export default defineConfig({
   base,
   cacheDir: resolve(root, ".vite-cache"),
-  plugins: [react(), { name: "mosaic-navigation", transformIndexHtml: () => [{ tag: "style", children: "@view-transition { navigation: auto; }", injectTo: "head-prepend" }] }],
+  plugins: [react(), seoPages({ root, base, updatedAt }), { name: "mosaic-navigation", transformIndexHtml: () => [{ tag: "style", children: "@view-transition { navigation: auto; }", injectTo: "head-prepend" }] }],
   build: {
     outDir: resolve(root, "dist"),
     emptyOutDir: true,
@@ -27,6 +29,6 @@ export default defineConfig({
     },
   },
   define: {
-    __SITE_UPDATED_AT__: JSON.stringify(process.env.SITE_UPDATED_AT || new Date().toISOString()),
+    __SITE_UPDATED_AT__: JSON.stringify(updatedAt),
   },
 });

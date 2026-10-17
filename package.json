@@ -6,7 +6,7 @@
     "dev": "vite --host 127.0.0.1",
     "snapshot": "node scripts/snapshot-public-resources.mjs",
     "check:snapshot": "node scripts/check-public-snapshot.mjs",
-    "build": "node scripts/generate-pages.mjs && vite build && node scripts/verify-dist.mjs",
+    "build": "node scripts/generate-pages.mjs && vite build && node scripts/verify-dist.mjs && node scripts/check-seo.mjs",
     "check:publish": "node scripts/preflight.mjs",
     "publish:build": "npm run check:publish && npm run build",
     "preview": "vite preview --host 127.0.0.1"

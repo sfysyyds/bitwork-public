@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { BookOpen } from "lucide-react";
 import { Brand } from "../components/Brand";
 import ResourceArticle, { CoverPixels, resourceCoverStyle, resourceMediaUrl } from "../components/ResourceArticle";
@@ -12,7 +11,6 @@ const items = snapshot.items as ResourceItem[];
 export default function Resources({ id }: { id?: string }) {
   const activeResource = id ? items.find(item => item.id === id) ?? null : null;
   const base = sitePath();
-  useEffect(() => { document.title = activeResource ? `${activeResource.title} · 汉化资源 · THE NEW BIT` : "汉化资源 · THE NEW BIT"; }, [activeResource]);
   return <main className="resources-page">
     <header className="resources-header"><Brand/><a href={id ? sitePath("resources/") : sitePath()} className="resources-home">←{id ? "作品目录" : "首页"}</a></header>
     {id ? activeResource ? <ResourceArticle resource={activeResource}/> : <div className="resources-state"><h1>未找到这项资源</h1><p>作品不存在，或尚未公开发布。</p><a href={sitePath("resources/")} className="resources-home">←返回资源目录</a></div> : <>
