@@ -36,6 +36,7 @@ try {
     assert.match(html, /id="root" data-prerendered="true"/);
     const body = html.split("</head>")[1].replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, "");
     const text = normalized(decode(body.replace(/<[^>]*>/g, " ")));
+    assert.equal([...body.matchAll(/<h1(?:\s|>)/g)].length, 1, `${route || "/"} must have exactly one H1`);
     assert.match(text, /THE NEW BIT/);
     assert.doesNotMatch(body, /<script\b/i);
     const item = items.find(item => route === `resources/${item.id}/`);
