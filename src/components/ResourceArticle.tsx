@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, type CSSProperties } from "react";
-import { X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Images, X } from "lucide-react";
 import ResourceActions from "./ResourceActions";
 import type { ResourceItem } from "../types";
 import { sitePath } from "../site-path";
@@ -56,7 +56,7 @@ export default function ResourceArticle({ resource }: { resource: ResourceItem }
 
   function openShot(index: number) {
     const dialog = dialogRef.current;
-    if (!dialog) return;
+    if (!dialog || !shots[index]) return;
     setActiveShot(index);
     if (!dialog.open) dialog.showModal();
   }
@@ -95,6 +95,12 @@ export default function ResourceArticle({ resource }: { resource: ResourceItem }
         {leadSections.map(section => <Section key={section.id} id={section.id} title={section.title}>{section.content}</Section>)}
         {shots.length > 0 && <section className="resource-article-section" id="screenshots" aria-labelledby="screenshots-title">
           <h2 id="screenshots-title">游戏截图</h2>
+          <button className="resource-gallery-stack" type="button" data-count={shots.length} onClick={() => openShot(0)} aria-label={`查看全部 ${shots.length} 张 CG`}>
+            <span className="resource-gallery-stack-front">
+              <img {...resourceImageProps(shots[0].url, "(max-width: 640px) calc(100vw - 52px), 460px")} alt="" loading="lazy" />
+              <span className="resource-gallery-stack-copy"><span><Images size={17}/>查看全部 CG</span><small>{shots.length} 张<ChevronRight size={16}/></small></span>
+            </span>
+          </button>
           <div className="resource-gallery">{shots.map((shot, index) => <button className="resource-shot" type="button" key={`${shot.url}-${index}`} onClick={() => openShot(index)} aria-label={`放大查看截图 ${index + 1}`}>
             <img {...resourceImageProps(shot.url, "(max-width: 600px) calc(100vw - 40px), (max-width: 1100px) 40vw, 460px")} alt={shot.caption || `${resource.title}截图 ${index + 1}`} loading="lazy" />
             <span>{shot.caption?.trim() || `截图 ${index + 1}`}</span>
@@ -104,7 +110,12 @@ export default function ResourceArticle({ resource }: { resource: ResourceItem }
       </div>
     </div>}
 
-    <dialog className="resource-lightbox" ref={dialogRef} aria-label="截图预览" onCancel={event => { event.preventDefault(); closeShot(); }} onClick={event => {
+    <dialog className="resource-lightbox" ref={dialogRef} aria-label="截图预览" onKeyDown={event => {
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        event.preventDefault();
+        openShot((activeShot ?? 0) + (event.key === "ArrowLeft" ? -1 : 1));
+      }
+    }} onCancel={event => { event.preventDefault(); closeShot(); }} onClick={event => {
       if (event.target === dialogRef.current) closeShot();
     }}>
       <header className="resource-lightbox-toolbar">
@@ -117,6 +128,10 @@ export default function ResourceArticle({ resource }: { resource: ResourceItem }
         </div>
         <figcaption className="resource-lightbox-caption">{selectedShot.caption?.trim() || `截图 ${(activeShot ?? 0) + 1}`}</figcaption>
       </figure>}
+      {selectedShot && shots.length > 1 && <nav className="resource-lightbox-nav" aria-label="CG 翻页">
+        <button type="button" disabled={activeShot === 0} onClick={() => openShot((activeShot ?? 0) - 1)}><ChevronLeft size={18}/>上一张</button>
+        <button type="button" disabled={activeShot === shots.length - 1} onClick={() => openShot((activeShot ?? 0) + 1)}>下一张<ChevronRight size={18}/></button>
+      </nav>}
     </dialog>
   </article>;
 }
