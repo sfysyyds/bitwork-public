@@ -7,5 +7,5 @@ assert.ok(rules.length);
 const fixed=rules.every(rule=>!/(?:height|aspect-ratio)\s*:\s*(?!auto\b)[^;]+/.test(rule))&&rules.some(rule=>/height\s*:\s*auto\b/.test(rule)&&/aspect-ratio\s*:\s*auto\b/.test(rule)&&/object-fit\s*:\s*contain\b/.test(rule));
 if(process.argv.includes("--expect-fixed"))assert.ok(fixed,"Gallery must override intrinsic height and preserve natural image ratio on every breakpoint");
 if(process.argv.includes("--expect-baseline"))assert.equal(fixed,false);
-const article=await readFile(path.join(root,"src/components/ResourceArticle.tsx"),"utf8");assert.ok(article.includes('src={resourceMediaUrl(selectedShot.url)}'),"Lightbox must still use the original screenshot");
-console.log(JSON.stringify({naturalGalleryRatio:fixed,heightAuto:rules.some(r=>/height\s*:\s*auto/.test(r)),galleryRules:rules,lightboxOriginalPreserved:true}));
+const article=await readFile(path.join(root,"src/components/ResourceArticle.tsx"),"utf8");assert.ok(article.includes('src={fullImageSrc(selectedShot.url)}'),"Lightbox must use the optimized full-resolution screenshot");
+console.log(JSON.stringify({naturalGalleryRatio:fixed,heightAuto:rules.some(r=>/height\s*:\s*auto/.test(r)),galleryRules:rules,lightboxFullResolution:true}));

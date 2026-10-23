@@ -29,6 +29,14 @@ for (const url of urls) {
       image.variants.push({ url: `/media/${file}`, width: info.width });
       active.add(file);
     }
+    const { data, info } = await sharp(bytes, { limitInputPixels: 40000000 }).rotate().webp({ quality: 90, alphaQuality: 100, effort: 5 }).toBuffer({ resolveWithObject: true });
+    if (data.length < bytes.length) {
+      const hash = createHash("sha256").update(data).digest("hex").slice(0, 12);
+      const file = `${path.basename(url, path.extname(url))}-full-${hash}.webp`;
+      await writeFile(path.join(root, "public/media", file), data);
+      image.fullUrl = `/media/${file}`;
+      active.add(file);
+    }
   }
   images[url] = image;
   originalBytes += bytes.length;
@@ -37,7 +45,7 @@ for (const url of urls) {
 }
 // Remove only our fingerprinted derivatives, never uploads/original images.
 for (const file of await readdir(path.join(root, "public/media"))) {
-  if (/^[a-f0-9-]{36}-(?:cover|shot-\d+)-[a-f0-9]{16}-w\d+-[a-f0-9]{12}\.webp$/i.test(file) && !active.has(file)) await rm(path.join(root, "public/media", file));
+  if (/^[a-f0-9-]{36}-(?:cover|shot-\d+)-[a-f0-9]{16}-(?:w\d+|full)-[a-f0-9]{12}\.webp$/i.test(file) && !active.has(file)) await rm(path.join(root, "public/media", file));
 }
 await writeFile(path.join(root, "src/data/images.json"), JSON.stringify(images));
 console.log(JSON.stringify({ optimizedImages: urls.size, originalBytes, previewBytes, originalsPreserved: true }));

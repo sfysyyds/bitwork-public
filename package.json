@@ -6,7 +6,7 @@
     "dev": "node scripts/optimize-images.mjs && vite --host 127.0.0.1",
     "snapshot": "node scripts/snapshot-public-resources.mjs",
     "check:snapshot": "node scripts/check-public-snapshot.mjs",
-    "build": "node scripts/optimize-images.mjs && tsc --noEmit && node scripts/check-routes.mjs && node scripts/generate-pages.mjs && vite build && node scripts/verify-dist.mjs && node scripts/check-seo.mjs && node scripts/check-image-loading.mjs . --expect-fixed && node scripts/check-mobile-gallery.mjs",
+    "build": "node scripts/optimize-images.mjs && node scripts/check-image-optimization.mjs && tsc --noEmit && node scripts/check-routes.mjs && node scripts/generate-pages.mjs && vite build && node scripts/verify-dist.mjs && node scripts/check-seo.mjs && node scripts/check-image-loading.mjs . --expect-fixed && node scripts/check-mobile-gallery.mjs",
     "check:publish": "node scripts/preflight.mjs",
     "publish:build": "npm run check:publish && npm run build",
     "preview": "vite preview --host 127.0.0.1"

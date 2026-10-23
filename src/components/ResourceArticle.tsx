@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Images, X } from "lucide-react";
 import ResourceActions from "./ResourceActions";
 import type { ResourceItem } from "../types";
 import { sitePath } from "../site-path";
-import { resourceImageProps } from "../resource-images";
+import { fullImageSrc, resourceImageProps } from "../resource-images";
 
 export function resourceMediaUrl(value: string | undefined) {
   const url = value?.trim();
@@ -124,7 +124,7 @@ export default function ResourceArticle({ resource }: { resource: ResourceItem }
       </header>
       {selectedShot && <figure>
         <div className="resource-lightbox-image" onClick={event => { if (event.target === event.currentTarget) closeShot(); }}>
-          <img src={resourceMediaUrl(selectedShot.url)} alt={selectedShot.caption || `${resource.title}截图 ${(activeShot ?? 0) + 1}`} decoding="async" />
+          <img src={fullImageSrc(selectedShot.url)} alt={selectedShot.caption || `${resource.title}截图 ${(activeShot ?? 0) + 1}`} decoding="async" />
         </div>
         <figcaption className="resource-lightbox-caption">{selectedShot.caption?.trim() || `截图 ${(activeShot ?? 0) + 1}`}</figcaption>
       </figure>}

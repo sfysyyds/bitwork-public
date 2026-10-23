@@ -36,6 +36,6 @@ if (fixed) {
   const html = await readFile(path.join(root, "dist/resources/index.html"), "utf8");
   if (optimized) { assert.match(html, /srcSet=|srcset=/i); assert.match(html, /fetchPriority="high"/i); assert.match(html, /decoding="async"/); }
   const source = await readFile(path.join(root, "src/components/ResourceArticle.tsx"), "utf8");
-  assert.ok(source.includes("src={resourceMediaUrl(selectedShot.url)}"), "Lightbox must retain the original image.");
+  assert.ok(source.includes("src={fullImageSrc(selectedShot.url)}"), "Lightbox must use the full-resolution optimized image when available.");
 } else assert.equal(optimized, 0);
 console.log(JSON.stringify({ phase: fixed ? "MODIFIED" : "BASELINE_OR_ROLLBACK", images: items.reduce((n,item)=>n+1+item.screenshots.length,0), optimized, originalBytes, previewBytes, mobileBytes, coverOriginal, coverPreview, originalsPreserved: true }));
