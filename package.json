@@ -6,7 +6,7 @@
     "dev": "node scripts/optimize-images.mjs && vite --host 127.0.0.1",
     "snapshot": "node scripts/snapshot-public-resources.mjs",
     "check:snapshot": "node scripts/check-public-snapshot.mjs",
-    "build": "node scripts/optimize-images.mjs && node scripts/generate-pages.mjs && vite build && node scripts/verify-dist.mjs && node scripts/check-seo.mjs && node scripts/check-image-loading.mjs . --expect-fixed && node scripts/check-mobile-gallery.mjs",
+    "build": "tsc --noEmit && node scripts/check-routes.mjs && node scripts/optimize-images.mjs && node scripts/generate-pages.mjs && vite build && node scripts/verify-dist.mjs && node scripts/check-seo.mjs && node scripts/check-image-loading.mjs . --expect-fixed && node scripts/check-mobile-gallery.mjs",
     "check:publish": "node scripts/preflight.mjs",
     "publish:build": "npm run check:publish && npm run build",
     "preview": "vite preview --host 127.0.0.1"
@@ -17,9 +17,12 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.2",
     "esbuild": "0.28.1",
     "sharp": "0.35.5",
-    "vite": "8.0.16"
+    "typescript": "5.9.3",
+    "vite": "8.1.6"
   }
 }
