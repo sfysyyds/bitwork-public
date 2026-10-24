@@ -80,7 +80,7 @@ export default function ResourceArticle({ resource }: { resource: ResourceItem }
         <h1>{resource.title}</h1>
         {resource.english && <p className="resource-original-title">{resource.english}</p>}
         {resource.version?.trim() && <dl className="resource-facts"><div><dt>版本</dt><dd>{resource.version.trim()}</dd></div></dl>}
-        <ResourceActions downloadUrl={resource.downloadUrl} articleUrl={resource.articleUrl}/>
+        <ResourceActions downloadUrl={resource.downloadUrl} gameUrl={resource.gameUrl} articleUrl={resource.articleUrl}/>
       </div>
     </header>
 

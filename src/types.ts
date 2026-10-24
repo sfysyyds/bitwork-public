@@ -8,6 +8,7 @@ export type ResourceItem = {
   version: string;
   intro: string;
   downloadUrl: string;
+  gameUrl?: string;
   articleUrl?: string;
   coverUrl: string;
   screenshots: ResourceScreenshot[];

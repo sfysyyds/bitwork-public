@@ -16,6 +16,8 @@ const safeDownload = "https://github.com/example/game/releases/download/v1/patch
 
 assert.equal(toPublicResource({ id, downloadUrl: safeDownload }).downloadUrl, safeDownload);
 assert.throws(() => toPublicResource({ id, downloadUrl: unsafeDownload }), /unsafe public download link/);
+assert.throws(() => toPublicResource({ id, gameUrl: "http://game.example.test/" }), /Invalid public game URL/);
+assert.throws(() => toPublicResource({ id, gameUrl: "https://fixture-user:fixture-pass@example.invalid/" }), /Invalid public game URL/);
 assert.throws(() => toPublicResource({ id, articleUrl: "https://fixture-user:fixture-pass@example.invalid/post" }), /Invalid public article link/);
 
 async function checkPreflight(sourceRoot, overrides = {}) {
@@ -38,15 +40,20 @@ async function checkPreflight(sourceRoot, overrides = {}) {
 }
 
 const clean = await checkPreflight(root);
+const validGame = await checkPreflight(root, { gameUrl: "https://game.example.test/" });
 const credentialedDownload = await checkPreflight(root, { downloadUrl: unsafeDownload });
 const credentialedArticle = await checkPreflight(root, { articleUrl: "https://fixture-user:fixture-pass@example.invalid/post" });
+const credentialedGame = await checkPreflight(root, { gameUrl: "https://fixture-user:fixture-pass@example.invalid/" });
 const externalImage = await checkPreflight(root, { coverUrl: "https://images.example.invalid/cover.png" });
 const traversalImage = await checkPreflight(root, { coverUrl: "/media/../resources/index.html" });
 assert.equal(clean.status, 0, clean.stderr);
+assert.equal(validGame.status, 0, validGame.stderr);
 assert.equal(credentialedDownload.status, 1, credentialedDownload.stdout);
 assert.match(credentialedDownload.stderr, /unsafe download URL/);
 assert.equal(credentialedArticle.status, 1);
 assert.match(credentialedArticle.stderr, /unsafe article URL/);
+assert.equal(credentialedGame.status, 1);
+assert.match(credentialedGame.stderr, /unsafe game URL/);
 assert.equal(externalImage.status, 1);
 assert.match(externalImage.stderr, /non-static media URL/);
 assert.equal(traversalImage.status, 1);
@@ -78,7 +85,9 @@ console.log(JSON.stringify({
     preflightExit: credentialedDownload.status,
   },
   cleanHttpsExit: clean.status,
+  validGameExit: validGame.status,
   credentialedArticleExit: credentialedArticle.status,
+  credentialedGameExit: credentialedGame.status,
   externalImageExit: externalImage.status,
   traversalImageExit: traversalImage.status,
 }));

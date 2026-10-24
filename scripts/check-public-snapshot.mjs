@@ -35,6 +35,7 @@ try {
     id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
     title: "Public title",
     downloadUrl: "https://github.com/example/release.zip",
+    gameUrl: "https://game.example.test/",
     articleUrl: "https://www.bilibili.com/opus/123",
     site_public: 1,
     token: "must-not-leak",
@@ -44,10 +45,13 @@ try {
     screenshots: [{ url: "/media/shot.png", caption: "Public caption", privateNote: "must-not-leak" }],
   });
   assert.deepEqual(Object.keys(projected), [
-    "id", "title", "english", "genre", "version", "intro", "downloadUrl", "articleUrl", "coverUrl", "screenshots",
+    "id", "title", "english", "genre", "version", "intro", "downloadUrl", "gameUrl", "articleUrl", "coverUrl", "screenshots",
     "description", "installation", "changelog", "credits",
   ]);
   assert.equal(projected.articleUrl,"https://www.bilibili.com/opus/123");
+  assert.equal(projected.gameUrl,"https://game.example.test/");
+  assert.throws(() => toPublicResource({ id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd", gameUrl: "https://fixture-user:fixture-pass@example.invalid/" }));
+  assert.throws(() => toPublicResource({ id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd", gameUrl: "http://game.example.test/" }));
   assert.throws(() => toPublicResource({ id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd", articleUrl: "javascript:alert(1)" }));
   assert.deepEqual(projected.screenshots, [{ url: "/media/shot.png", caption: "Public caption" }]);
   assert.equal(JSON.stringify(projected).includes("must-not-leak"), false);

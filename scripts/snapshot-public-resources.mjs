@@ -11,7 +11,7 @@ const allowedImageTypes = new Map([
   ["image/gif", "gif"], ["image/avif", "avif"],
 ]);
 const allowedFields = new Set([
-  "id", "title", "english", "genre", "version", "intro", "downloadUrl", "articleUrl", "coverUrl", "screenshots",
+  "id", "title", "english", "genre", "version", "intro", "downloadUrl", "gameUrl", "articleUrl", "coverUrl", "screenshots",
   "description", "installation", "changelog", "credits",
 ]);
 
@@ -23,6 +23,8 @@ export function safeId(value) {
 export function toPublicResource(row, { coverUrl = "", screenshots = [] } = {}) {
   const downloadUrl = typeof row.downloadUrl === "string" ? row.downloadUrl : "";
   if (downloadUrl) { const url = new URL(downloadUrl); if (url.protocol !== "https:" || url.username || url.password) throw new Error(`Refusing an unsafe public download link for ${row.id}.`); }
+  const gameUrl = typeof row.gameUrl === "string" ? row.gameUrl : "";
+  if (gameUrl) { const url = new URL(gameUrl); if (url.protocol !== "https:" || url.username || url.password) throw new Error(`Invalid public game URL for ${row.id}.`); }
   const articleUrl = typeof row.articleUrl === "string" ? row.articleUrl : "";
   if (articleUrl) { const url = new URL(articleUrl); if (url.protocol !== "https:" || url.username || url.password) throw new Error(`Invalid public article link for ${row.id}.`); }
   return {
@@ -33,6 +35,7 @@ export function toPublicResource(row, { coverUrl = "", screenshots = [] } = {}) 
     version: typeof row.version === "string" ? row.version : "",
     intro: typeof row.intro === "string" ? row.intro : "",
     downloadUrl,
+    gameUrl,
     articleUrl,
     coverUrl,
     screenshots: screenshots.map(shot => ({ url: shot.url, caption: typeof shot.caption === "string" ? shot.caption : "" })),
