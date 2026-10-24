@@ -8,7 +8,7 @@ export default function ResourceActions({ downloadUrl, gameUrl, articleUrl }: { 
   const dialog = useRef<HTMLDialogElement>(null), titleId = useId(), pending = useRef<AbortController | null>(null);
   const [results, setResults] = useState<DownloadMeasurement[]>([]);
   const routes = downloadRoutes(direct), currentResults = currentMeasurements(routes, results);
-  useEffect(() => { pending.current?.abort(); pending.current = null; setResults([]); return () => pending.current?.abort(); }, [direct]);
+  useEffect(() => { dialog.current?.close(); pending.current?.abort(); pending.current = null; setResults([]); return () => pending.current?.abort(); }, [direct]);
   function stop() { pending.current?.abort(); pending.current = null; }
   function close() { stop(); dialog.current?.close(); }
   async function open() {
