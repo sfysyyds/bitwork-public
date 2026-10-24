@@ -43,7 +43,8 @@ try {
     assert.equal([...body.matchAll(/<h1(?:\s|>)/g)].length, 1, `${route || "/"} must have exactly one H1`);
     assert.match(text, /THE NEW BIT/);
     assert.match(text, /新位元汉化组/);
-    if (!route) for (const item of items) assert.ok(body.includes(`resources/${item.id}/`));
+    if (!route) assert.doesNotMatch(body, /class="landing-projects"/);
+    if (route === "resources/") for (const item of items) assert.ok(body.includes(`resources/${item.id}/`));
     assert.doesNotMatch(body, /<script\b/i);
     const item = items.find(item => route === `resources/${item.id}/`);
     if (item) {

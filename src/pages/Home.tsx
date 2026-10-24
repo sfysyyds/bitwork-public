@@ -4,7 +4,6 @@ import BitScene from "../components/BitScene";
 import PixelText from "../components/PixelText";
 import { sitePath, workbenchUrl } from "../site-path";
 import CommunityCodes from "../components/CommunityCodes";
-import snapshot from "../data/resources.json";
 import "../styles/homepage.css";
 import "../styles/community-codes.css";
 
@@ -27,7 +26,6 @@ export default function Home() {
         <a className="button primary" href={login || undefined} aria-disabled={!login}><LogIn size={19} />账号登录</a>
       </div>
     </section>
-    {snapshot.items.length > 0 && <nav className="landing-projects" aria-label="已发布汉化补丁">{snapshot.items.map(item => <a key={item.id} href={sitePath(`resources/${item.id}/`)}>{item.english || item.title} 汉化补丁</a>)}</nav>}
     <footer className="landing-footer"><div className="landing-release"><span>更新时间</span><time dateTime={updatedAt}>{updatedLabel}</time></div><CommunityCodes/></footer>
   </main>;
 }
