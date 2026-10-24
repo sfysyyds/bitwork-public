@@ -31,7 +31,8 @@ export function downloadRoutes(value: string): DownloadRoute[] {
   return direct ? [{ id: "direct", name: "直接下载", url: direct, kind: "direct" }, ...(asset ? downloadProxies.map(p => ({ id: p.origin, name: p.name, url: p.origin + asset, kind: "proxy" as const })) : [])] : [];
 }
 export function downloadSpeed(result: DownloadMeasurement | undefined) {
-  if (!result || result.status !== "ok") return "无法测速";
+  if (!result) return "测速中…";
+  if (result.status !== "ok") return "无法连接";
   const kib = result.bytes * 1000 / result.ms / 1024;
   return kib >= 1024 ? `${(kib / 1024).toFixed(2)} MiB/s` : `${kib.toFixed(1)} KiB/s`;
 }
