@@ -78,7 +78,7 @@ export default function ResourceArticle({ resource }: { resource: ResourceItem }
       <div className="resource-hero-copy">
         <p className="resource-category">{resource.genre || "类型未填写"}</p>
         <h1>{resource.title}</h1>
-        {resource.english && <p className="resource-original-title">{resource.english}</p>}
+        <p className="resource-original-title">{resource.english ? `${resource.english} 汉化补丁 · ` : ""}新位元汉化组</p>
         {resource.version?.trim() && <dl className="resource-facts"><div><dt>版本</dt><dd>{resource.version.trim()}</dd></div></dl>}
         <ResourceActions downloadUrl={resource.downloadUrl} gameUrl={resource.gameUrl} articleUrl={resource.articleUrl}/>
       </div>

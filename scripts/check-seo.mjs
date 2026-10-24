@@ -29,6 +29,10 @@ try {
     assert.doesNotMatch(head, /noindex|nofollow/i);
     titles.push(decode(head.match(/<title>(.*?)<\/title>/s)?.[1] || ""));
     assert.ok(titles.at(-1));
+    assert.match(titles.at(-1), /新位元汉化组/);
+    assert.ok(head.includes("favicon-96.png"));
+    const graph = JSON.parse(head.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)?.[1] || "{}")["@graph"];
+    assert.ok(graph.some(node => node["@type"] === "WebSite" && node.name === "新位元汉化组" && node.alternateName.includes("THE NEW BIT")));
     const ld = [...html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/gs)];
     assert.equal(ld.length, 1);
     assert.doesNotMatch(ld[0][1], /</);
@@ -38,11 +42,18 @@ try {
     const text = normalized(decode(body.replace(/<[^>]*>/g, " ")));
     assert.equal([...body.matchAll(/<h1(?:\s|>)/g)].length, 1, `${route || "/"} must have exactly one H1`);
     assert.match(text, /THE NEW BIT/);
+    assert.match(text, /新位元汉化组/);
+    if (!route) for (const item of items) assert.ok(body.includes(`resources/${item.id}/`));
     assert.doesNotMatch(body, /<script\b/i);
     const item = items.find(item => route === `resources/${item.id}/`);
     if (item) {
       assert.ok(text.includes(normalized(item.title)));
       assert.ok(titles.at(-1).includes(item.title));
+      assert.ok(titles.at(-1).includes("汉化补丁"));
+      if (item.english) assert.ok(titles.at(-1).includes(item.english));
+      const description = head.match(/name="description" content="([^"]+)"/)?.[1] || "";
+      assert.ok(description.includes("汉化补丁") && description.includes("新位元汉化组"));
+      if (item.version?.trim()) assert.ok(description.includes(item.version.trim()));
       if (item.intro?.trim()) assert.ok(text.includes(normalized(item.intro)));
     }
   }

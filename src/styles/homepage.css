@@ -20,3 +20,5 @@
   .landing .mobile-home-intro .bit-scene { width: 148px; margin-bottom: 12px; }
   .landing .mobile-home-actions a { padding-top: 14px; padding-bottom: 14px; }
 }
+
+.landing-projects{display:flex;flex-wrap:wrap;justify-content:center;gap:0 20px;margin:0 auto 12px;max-width:100%;font-size:.75rem;color:#a1a1aa}.landing-projects a{display:inline-flex;align-items:center;min-height:44px;text-align:center;overflow-wrap:anywhere}.landing-projects a:hover{color:#fff;text-decoration:underline}
