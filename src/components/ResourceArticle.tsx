@@ -34,7 +34,7 @@ function Section({ id, title, children }: { id: string; title: string; children:
   </section>;
 }
 
-export default function ResourceArticle({ resource, index = 0 }: { resource: ResourceItem; index?: number }) {
+export default function ResourceArticle({ resource }: { resource: ResourceItem }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [activeShot, setActiveShot] = useState<number | null>(null);
   const shots = (resource.screenshots ?? []).filter(shot => resourceMediaUrl(shot.url));
@@ -76,7 +76,6 @@ export default function ResourceArticle({ resource, index = 0 }: { resource: Res
         </> : <span role="img" aria-label="暂无封面，显示作品标题首字">{resource.title.slice(0, 1) || "?"}</span>}
       </div>
       <div className="resource-hero-copy">
-        <p className="resource-hero-index"><span>PUBLIC ARCHIVE</span><span>ENTRY / {String(index + 1).padStart(2, "0")}</span></p>
         <p className="resource-category">{resource.genre || "类型未填写"}</p>
         <h1>{resource.title}</h1>
         <p className="resource-original-title">{resource.english ? `${resource.english} 汉化补丁 · ` : ""}新位元汉化组</p>
