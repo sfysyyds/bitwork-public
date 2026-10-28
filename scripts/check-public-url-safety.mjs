@@ -27,6 +27,7 @@ async function checkPreflight(sourceRoot, overrides = {}) {
     await mkdir(path.join(temp, "src/data"), { recursive: true });
     await mkdir(path.join(temp, "public"), { recursive: true });
     await cp(path.join(sourceRoot, "scripts/preflight.mjs"), path.join(temp, "scripts/preflight.mjs"));
+    await cp(path.join(sourceRoot, "scripts/snapshot-public-resources.mjs"), path.join(temp, "scripts/snapshot-public-resources.mjs"));
     const item = { id, downloadUrl: safeDownload, articleUrl: "https://www.bilibili.com/opus/123", coverUrl: "", screenshots: [], ...overrides };
     await writeFile(path.join(temp, "src/data/resources.json"), JSON.stringify({ snapshotAt: "2026-10-16T00:00:00.000Z", items: [item] }));
     await writeFile(path.join(temp, "public/publication.json"), JSON.stringify({ publishId: id, publishedAt: "2026-10-16T00:00:00.000Z", publicRevision: "a".repeat(64) }));
@@ -54,8 +55,7 @@ assert.equal(credentialedArticle.status, 1);
 assert.match(credentialedArticle.stderr, /unsafe article URL/);
 assert.equal(credentialedGame.status, 1);
 assert.match(credentialedGame.stderr, /unsafe game URL/);
-assert.equal(externalImage.status, 1);
-assert.match(externalImage.stderr, /non-static media URL/);
+assert.equal(externalImage.status, 0, externalImage.stderr);
 assert.equal(traversalImage.status, 1);
 assert.match(traversalImage.stderr, /non-static media URL/);
 

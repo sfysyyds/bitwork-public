@@ -1,3 +1,4 @@
+import { isExternalImage } from "./snapshot-public-resources.mjs";
 import { readFile, writeFile, readdir, rm, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -11,6 +12,7 @@ const images = {}, active = new Set();
 await mkdir(path.join(root, "public/media"), { recursive: true });
 let originalBytes = 0, previewBytes = 0;
 for (const url of urls) {
+  if (isExternalImage(url)) continue;
   if (!/^\/media\/[a-f0-9-]+-(?:cover|shot-\d+)-[a-f0-9]{16}\.(?:jpg|png|webp|gif|avif)$/i.test(url)) throw new Error("Unexpected approved image path.");
   const bytes = await readFile(path.join(root, "public", url.slice(1)));
   const metadata = await sharp(bytes, { limitInputPixels: 40000000 }).metadata();
@@ -48,4 +50,4 @@ for (const file of await readdir(path.join(root, "public/media"))) {
   if (/^[a-f0-9-]{36}-(?:cover|shot-\d+)-[a-f0-9]{16}-(?:w\d+|full)-[a-f0-9]{12}\.webp$/i.test(file) && !active.has(file)) await rm(path.join(root, "public/media", file));
 }
 await writeFile(path.join(root, "src/data/images.json"), JSON.stringify(images));
-console.log(JSON.stringify({ optimizedImages: urls.size, originalBytes, previewBytes, originalsPreserved: true }));
+console.log(JSON.stringify({ optimizedImages: Object.keys(images).length, originalBytes, previewBytes, originalsPreserved: true }));

@@ -1,3 +1,4 @@
+import { isExternalImage } from "./snapshot-public-resources.mjs";
 import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,6 +25,7 @@ for (const item of manifest.items) {
   if (Object.keys(item).some(key => !allowed.has(key))) throw new Error(`Publish blocked: non-public field detected in ${item.id}.`);
   const urls = [item.coverUrl, ...(item.screenshots || []).map(shot => shot.url)].filter(Boolean);
   for (const url of urls) {
+    if (isExternalImage(url)) continue;
     if (!url.startsWith("/media/") || url.includes("..") || url.includes("/api/")) throw new Error(`Publish blocked: non-static media URL in ${item.id}.`);
     await stat(path.join(root, "public", url.slice(1)));
   }

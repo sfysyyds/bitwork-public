@@ -1,3 +1,4 @@
+import { isExternalImage } from "./snapshot-public-resources.mjs";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
@@ -7,7 +8,7 @@ import sharp from "sharp";
 const root = path.resolve(process.argv[2] || ".");
 const { items } = JSON.parse(await readFile(path.join(root, "src/data/resources.json"), "utf8"));
 const images = JSON.parse(await readFile(path.join(root, "src/data/images.json"), "utf8"));
-const urls = new Set(items.flatMap(item => [item.coverUrl, ...(item.screenshots || []).map(shot => shot.url)]).filter(Boolean));
+const urls = new Set(items.flatMap(item => [item.coverUrl, ...(item.screenshots || []).map(shot => shot.url)]).filter(url => url && !isExternalImage(url)));
 assert.deepEqual(Object.keys(images).sort(), [...urls].sort(), "Every and only public cover/CG must be in the optimized manifest.");
 let originalBytes = 0, previewBytes = 0, fullBytes = 0, rgbErrorTotal = 0, rgbSamples = 0, maxAlphaError = 0;
 let variants = 0, fullImages = 0;

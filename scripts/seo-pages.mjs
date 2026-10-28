@@ -48,7 +48,7 @@ export default function seoPages({ root, base, updatedAt }) {
           ...(page.item ? [{ "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "首页", item: `${origin}${base}` }, { "@type": "ListItem", position: 2, name: "汉化资源", item: `${origin}${base}resources/` }, { "@type": "ListItem", position: 3, name: page.item.title, item: page.url }] }] : []),
         ],
       };
-      const image = page.item?.coverUrl ? `${origin}${base}${page.item.coverUrl.replace(/^\//, "")}` : null;
+      const image = page.item?.coverUrl ? (page.item.coverUrl.startsWith("/media/") ? `${origin}${base}${page.item.coverUrl.slice(1)}` : page.item.coverUrl) : null;
       const tags = [
         { tag: "link", attrs: { rel: "icon", type: "image/png", sizes: "96x96", href: `${origin}${base}favicon-96.png` } },
         { tag: "meta", attrs: { name: "description", content: page.description } },

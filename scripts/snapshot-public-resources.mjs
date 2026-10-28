@@ -81,7 +81,7 @@ function getPublishId() {
 async function fetchPublic(url) {
   for (let attempt = 0; ; attempt++) {
     try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(30000) });
+      const response = await fetch(url, { signal: AbortSignal.timeout(30000), redirect: "error" });
       if (attempt || response.status < 500) return response;
       await response.body?.cancel();
     } catch (error) { if (attempt) throw error; }
@@ -89,8 +89,17 @@ async function fetchPublic(url) {
   }
 }
 
+export function isExternalImage(value) {
+  if (typeof value !== "string" || !/^https:\/\//i.test(value) || /[\s\\]/.test(value)) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && !url.username && !url.password && url.origin !== source;
+  } catch { return false; }
+}
+
 async function copyPublicImage(value, name) {
   if (!value) return "";
+  if (isExternalImage(value)) return value;
   const match = /^\/api\/resource-media\/([a-f0-9-]{36})$/i.exec(value);
   if (!match) throw new Error(`Refusing non-public or unexpected media URL: ${value}`);
   const response = await fetchPublic(`${source}${value}`);
@@ -126,12 +135,12 @@ async function snapshot() {
     if (activeIds.has(id)) throw new Error(`Duplicate published resource id: ${id}`);
     activeIds.add(id);
     const coverUrl = await copyPublicImage(row.coverUrl, `${id}-cover`);
-    if (coverUrl) activeMedia.add(coverUrl);
+    if (coverUrl.startsWith("/media/")) activeMedia.add(coverUrl);
     const screenshots = [];
     for (let index = 0; index < (Array.isArray(row.screenshots) ? row.screenshots.length : 0); index++) {
       const shot = row.screenshots[index];
       const url = await copyPublicImage(shot?.url, `${id}-shot-${index + 1}`);
-      if (url) activeMedia.add(url);
+      if (url.startsWith("/media/")) activeMedia.add(url);
       screenshots.push({ url, caption: typeof shot?.caption === "string" ? shot.caption : "" });
     }
     items.push(toPublicResource(row, { coverUrl, screenshots }));
@@ -154,7 +163,7 @@ async function snapshot() {
   const written = JSON.parse(await readFile(manifestPath, "utf8"));
   for (const item of written.items) {
     if (Object.keys(item).some(key => !allowedFields.has(key))) throw new Error(`Unexpected manifest field in ${item.id}.`);
-    if ([item.coverUrl, ...item.screenshots.map(shot => shot.url)].some(url => url.includes("/api/") || url.startsWith("http:"))) {
+    if ([item.coverUrl, ...item.screenshots.map(shot => shot.url)].some(url => url && !url.startsWith("/media/") && !isExternalImage(url))) {
       throw new Error(`Manifest still references API media in ${item.id}.`);
     }
   }

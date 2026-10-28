@@ -1,3 +1,4 @@
+import { isExternalImage } from "./snapshot-public-resources.mjs";
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -23,7 +24,7 @@ if ((await readFile(path.join(dist, "CNAME"), "utf8")).trim() !== "bitwork.top")
 if (files.some(file => file.toLowerCase().endsWith(".rpy"))) throw new Error("Static output must never contain Ren'Py source files.");
 const published = new Set(manifest.items.flatMap(item => [
   `resources/${item.id}/index.html`,
-  ...[item.coverUrl, ...(item.screenshots || []).map(shot => shot.url)].filter(Boolean).map(url => url.replace(/^\//, "")),
+  ...[item.coverUrl, ...(item.screenshots || []).map(shot => shot.url)].filter(url => url && !isExternalImage(url)).map(url => url.replace(/^\//, "")),
 ]));
 for (const [url, image] of Object.entries(images)) {
   if (!published.has(url.replace(/^\//, ""))) throw new Error("Image variants must belong to an approved original.");
@@ -39,9 +40,11 @@ for (const item of manifest.items) {
   const route = `resources/${item.id}/index.html`;
   if (!files.includes(route)) throw new Error(`Missing direct static detail route: ${route}`);
 }
+const externalImages = manifest.items.flatMap(item => [item.coverUrl, ...(item.screenshots || []).map(shot => shot.url)]).filter(isExternalImage);
 for (const file of files.filter(file => /\.(?:html|js|css|svg|txt|json|xml)$/i.test(file))) {
   const content = await readFile(path.join(dist, file), "utf8");
-  if (/\/api\/(?:resources|resource-media)/i.test(content)) throw new Error(`Static output still references the live API: ${file}`);
+  const withoutExternalImages = externalImages.reduce((text, url) => text.split(url).join("").split(url.replace(/&/g, "&amp;")).join(""), content);
+  if (/\/api\/(?:resources|resource-media)/i.test(withoutExternalImages)) throw new Error(`Static output still references the live API: ${file}`);
   if (/(?:^|[=:])HOST(?:$|[\s"'`])/m.test(content)) throw new Error(`Unconfigured HOST placeholder found in output: ${file}`);
 }
 const totalBytes = (await Promise.all(files.map(file => stat(path.join(dist, file))))).reduce((sum, file) => sum + file.size, 0);

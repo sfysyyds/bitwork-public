@@ -1,3 +1,4 @@
+import { isExternalImage } from "./snapshot-public-resources.mjs";
 import assert from "node:assert/strict";
 import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
@@ -12,7 +13,7 @@ let images = {};
 try { images = JSON.parse(await readFile(path.join(root, "src/data/images.json"), "utf8")); } catch (error) { if (error.code !== "ENOENT") throw error; }
 let originalBytes = 0, previewBytes = 0, mobileBytes = 0, optimized = 0, coverOriginal = 0, coverPreview = 0;
 for (const item of items) {
-  for (const url of [item.coverUrl, ...item.screenshots.map(shot => shot.url)].filter(Boolean)) {
+  for (const url of [item.coverUrl, ...item.screenshots.map(shot => shot.url)].filter(url => url && !isExternalImage(url))) {
     const original = await readFile(path.join(root, "public", url.slice(1))), image = images[url];
     assert.ok(url.includes(createHash("sha256").update(original).digest("hex").slice(0, 16)), "Original bytes must remain unchanged.");
     originalBytes += original.length;
@@ -31,10 +32,14 @@ for (const item of items) {
   }
 }
 if (fixed) {
-  assert.equal(Object.keys(images).length, new Set(items.flatMap(item => [item.coverUrl, ...item.screenshots.map(shot => shot.url)]).filter(Boolean)).size);
+  assert.equal(Object.keys(images).length, new Set(items.flatMap(item => [item.coverUrl, ...item.screenshots.map(shot => shot.url)]).filter(url => url && !isExternalImage(url))).size);
   assert.ok(previewBytes <= originalBytes, "Do not replace an image with a larger preview.");
   const html = await readFile(path.join(root, "dist/resources/index.html"), "utf8");
-  if (optimized) { assert.match(html, /srcSet=|srcset=/i); assert.match(html, /fetchPriority="high"/i); assert.match(html, /decoding="async"/); }
+  if (optimized) {
+    const item = items.find(item => [item.coverUrl, ...item.screenshots.map(shot => shot.url)].some(url => images[url]?.variants.length));
+    const optimizedHtml = item ? await readFile(path.join(root, `dist/resources/${item.id}/index.html`), "utf8") : html;
+    assert.match(optimizedHtml, /srcSet=|srcset=/i); assert.match(html, /fetchPriority="high"/i); assert.match(html, /decoding="async"/);
+  }
   const source = await readFile(path.join(root, "src/components/ResourceArticle.tsx"), "utf8");
   assert.ok(source.includes("src={fullImageSrc(selectedShot.url)}"), "Lightbox must use the full-resolution optimized image when available.");
 } else assert.equal(optimized, 0);
