@@ -18,6 +18,24 @@
     ]
   },
   {
+    "name": "group",
+    "originalSha256": "ec11f9b48dde96fb0adc0c2d8feaf8cce00f9f2b014cbcae0c193b3f3299b46c",
+    "payloadSha256": "50855e4633915255bf59879946ea6bd4838b4964e0445acde57de3e01cc2b290",
+    "payloadBytes": 30,
+    "matrixIncludingQuietZone": 41,
+    "quietZoneModules": 4,
+    "errorCorrection": "H",
+    "pngSha256": "152e67d1893dcd82e3878f8083472a5edf9f116eabf475adf5738bf27769daf7",
+    "svgSha256": "ad44ee81b6ce386bf468949388e1937c7f6382ce320d1ddf710e6a6611f78dc8",
+    "decodedOriginalEqualsRebuilt": true,
+    "scanSizesPassed": [
+      240,
+      288,
+      320,
+      384
+    ]
+  },
+  {
     "name": "sponsor",
     "originalSha256": "c098db34a70b37e7e43f89d5ba21d3009280abb7399bc3c40dbd94fd111d6ff3",
     "payloadSha256": "76d2c08043f401a972a6d344764e2a646f2d8d4826c17bf255c9637aad265d69",

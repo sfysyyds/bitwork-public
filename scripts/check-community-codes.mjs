@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
+import {createRequire} from 'node:module';
 const targetAt=process.argv.indexOf('--target'),root=targetAt<0?path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'):path.resolve(process.argv[targetAt+1]);
 const baseline=process.argv.includes('--baseline'),home=fs.readFileSync(path.join(root,'src/pages/Home.tsx'),'utf8');
 assert.equal(home.includes('<CommunityCodes/>'),!baseline);
@@ -17,6 +18,13 @@ else{
   for(const match of text.matchAll(/M(\d+),(\d+)h1v1h-1z/g)){for(const coordinate of [Number(match[1]),Number(match[2])])assert.ok(coordinate>=4&&coordinate<row.matrixIncludingQuietZone-4);}
   assert.equal(row.decodedOriginalEqualsRebuilt,true);assert.equal(row.quietZoneModules,4);
  }
- const component=fs.readFileSync(path.join(root,'src/components/CommunityCodes.tsx'),'utf8');assert.ok(component.includes('showModal()'));assert.ok(component.includes('onClose='));assert.ok(component.includes('aria-labelledby='));assert.ok(!component.includes('window.open')&&!component.includes('location.assign'));
- console.log(JSON.stringify({behavior:'MODIFIED',homeEntries:2,enlargement:'native dialog',assetHashesVerified:true,quietZoneModules:4,externalRedirects:false}));
+ console.log(JSON.stringify({observedEntries:manifest.length,groupAssetPresent:fs.existsSync(path.join(root,'public/assets/community/group.png'))}));
+ assert.equal(manifest.length,3);
+ const component=fs.readFileSync(path.join(root,'src/components/CommunityCodes.tsx'),'utf8');assert.ok(component.includes('key: "group"')&&component.includes('title: "QQ群"'));assert.ok(component.includes('showModal()'));assert.ok(component.includes('onClose='));assert.ok(component.includes('aria-labelledby='));assert.ok(!component.includes('window.open')&&!component.includes('location.assign'));
+ const require=createRequire(path.join(root,'package.json')),React=require('react'),mod={exports:{}};
+ const bundle=await require('esbuild').build({entryPoints:[path.join(root,'src/components/CommunityCodes.tsx')],bundle:true,write:false,format:'cjs',platform:'node',packages:'external',jsx:'automatic',define:{'import.meta.env.BASE_URL':'"/"','import.meta.env.VITE_WORKBENCH_HOST':'"https://work.bitwork.top"'}});
+ new Function('require','module','exports',bundle.outputFiles[0].text)(require,mod,mod.exports);
+ const html=require('react-dom/server').renderToStaticMarkup(React.createElement(mod.exports.default));
+ assert.equal((html.match(/aria-haspopup="dialog"/g)||[]).length,3);assert.ok(html.includes('QQ群，放大二维码')&&html.includes('加入我们，放大二维码')&&html.includes('赞助我们，放大二维码'));assert.ok(!html.includes('/assets/community/'),'QR loads only after opening the dialog');
+ console.log(JSON.stringify({behavior:'MODIFIED',homeEntries:manifest.length,enlargement:'native dialog',assetHashesVerified:true,quietZoneModules:4,externalRedirects:false}));
 }

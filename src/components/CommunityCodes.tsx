@@ -4,6 +4,7 @@ import { sitePath } from "../site-path";
 
 const codes = [
   { key: "join", title: "加入我们", icon: "qq", platform: "QQ", hint: "使用 QQ 扫码联系" },
+  { key: "group", title: "QQ群", icon: "qq", platform: "QQ", hint: "使用 QQ 扫码加入群聊（群号 723702041）" },
   { key: "sponsor", title: "赞助我们", icon: "wechat", platform: "微信", hint: "使用微信扫码赞助" },
 ] as const;
 
