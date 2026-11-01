@@ -27,10 +27,17 @@ export function CoverPixels({ src, sizes }: { src: string; sizes: string }) {
   return [2, 4, 8].map(size => <img key={size} className={`resource-cover-pixels resource-cover-pixels-${size}`} {...resourceImageProps(src, sizes)} alt="" aria-hidden="true" loading="lazy" />);
 }
 
-function Section({ id, title, children }: { id: string; title: string; children: string }) {
+function Section({ id, title, children, installationGuide = false }: { id: string; title: string; children: string; installationGuide?: boolean }) {
   return <section className="resource-article-section" id={id} aria-labelledby={`${id}-title`}>
     <h2 id={`${id}-title`}>{title}</h2>
     <div className="resource-prose">{children.trim() || <span className="resource-empty">尚未提供</span>}</div>
+    {installationGuide && <details className="resource-install-guide" open>
+      <summary>Windows 安装动画（可展开 / 收起）</summary>
+      <a href={sitePath("/assets/burrows-windows-13f3d89a.svg")} target="_blank" rel="noopener noreferrer" aria-label="单独打开 Windows 安装动画，可缩放查看">
+        <img src={sitePath("/assets/burrows-windows-13f3d89a.svg")} width={1200} height={660} alt="将补丁压缩包中的 game 拖到 Burrows.exe 所在目录空白处，合并并替换同名文件" loading="lazy" />
+      </a>
+      <p>点击动画可单独打开；手机可双指放大查看。</p>
+    </details>}
   </section>;
 }
 
@@ -106,7 +113,7 @@ export default function ResourceArticle({ resource }: { resource: ResourceItem }
             <span>{shot.caption?.trim() || `截图 ${index + 1}`}</span>
           </button>)}</div>
         </section>}
-        {otherSections.map(section => <Section key={section.id} id={section.id} title={section.title}>{section.content}</Section>)}
+        {otherSections.map(section => <Section key={section.id} id={section.id} title={section.title} installationGuide={section.id === "installation" && resource.id === "ba2d4574-c048-4207-a238-bd242a64b91d"}>{section.content}</Section>)}
       </div>
     </div>}
 

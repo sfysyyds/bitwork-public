@@ -123,3 +123,11 @@
 .patch-download-dialog::backdrop{background:#000b}.patch-download-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.patch-download-head h2{margin:0;font-size:18px;line-height:1.4}.patch-close{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;color:#eee;background:#202025;border:1px solid #3c3c45;border-radius:8px;cursor:pointer}
 .patch-download-routes{display:grid;gap:7px}.patch-download-route{box-sizing:border-box;display:flex;justify-content:space-between;gap:12px;align-items:center;min-height:48px;border:1px solid #303037;border-radius:8px;padding:12px;color:#f4f4f5;text-decoration:none}.patch-download-route:hover{background:#202025;border-color:#62626d}.patch-download-route strong{font-size:14px}.patch-route-speed{font-size:13px;font-variant-numeric:tabular-nums;color:#b9b9c4;text-align:right;white-space:nowrap}.patch-download-dialog a:focus-visible,.patch-download-dialog button:focus-visible{outline:2px solid #fff;outline-offset:3px}.patch-download-note{display:block;margin-top:12px;color:#9999a5;font-size:11px;line-height:1.7}
 @media(max-width:480px){.patch-download-dialog{padding:14px;max-height:calc(100dvh - 24px)}}
+
+/* Per-work installation illustration; keep original instructions and image ratio. */
+.resource-install-guide{margin-top:20px;border:1px solid var(--wiki-line);border-radius:10px;overflow:hidden;background:#090a0d;}
+.resource-install-guide summary{padding:12px 14px;cursor:pointer;color:#d5d5df;font-size:14px;}
+.resource-install-guide a{display:block;}
+.resource-install-guide img{display:block;width:100%;height:auto;}
+.resource-install-guide p{margin:0;padding:10px 14px;color:var(--wiki-muted);font-size:12px;line-height:1.6;}
+.resource-install-guide a:focus-visible,.resource-install-guide summary:focus-visible{outline:2px solid #fff;outline-offset:-3px;}
