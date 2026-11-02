@@ -11,11 +11,11 @@ export default function DotField(){
   let targetX=0,targetY=0,px=0,py=0,influence=0,inside=false;
   const animated=()=>!motion.matches;
   const paint=()=>{
-   ctx.clearRect(0,0,width,height);
+   const scale=field.scale;ctx.clearRect(0,0,width,height);
    for(let y=1;y<field.rows-1;y++)for(let x=1;x<field.columns-1;x++){
     const xx=x*field.step,yy=y*field.step;if(xx>width||yy>height)continue;
-    const strength=sampleField(xx,yy,animated()?time:0,px,py,animated()?influence:0,field.seed);
-    const edge=Math.min(1,Math.min(xx,yy,width-xx,height-yy)/65),alpha=(.07+strength*.64)*(.4+.6*edge),radius=.65+strength*1.15;
+    const strength=sampleField(xx/scale,yy/scale,animated()?time:0,px/scale,py/scale,animated()?influence:0,field.seed);
+    const edge=Math.min(1,Math.min(xx,yy,width-xx,height-yy)/65),alpha=(.07+strength*.64)*(.4+.6*edge),radius=(.65+strength*1.15)*scale;
     if(strength>.55){ctx.fillStyle=`rgba(255,255,255,${(strength-.55)*.13})`;ctx.beginPath();ctx.arc(xx,yy,radius*2.5,0,Math.PI*2);ctx.fill();}
     ctx.fillStyle=`rgba(255,255,255,${alpha})`;
     ctx.beginPath();ctx.arc(xx,yy,radius,0,Math.PI*2);ctx.fill();

@@ -1,6 +1,6 @@
 export function createField(width:number,height:number,random=Math.random){
- const step=Math.max(22,Math.ceil(Math.sqrt(width*height/3600)));
- return {step,columns:Math.ceil(width/step)+2,rows:Math.ceil(height/step)+2,seed:random()*Math.PI*2};
+ const scale=Math.min(1,Math.max(.55,width/760)),step=Math.max(22*scale,Math.ceil(Math.sqrt(width*height/3600)));
+ return {step,scale,columns:Math.ceil(width/step)+2,rows:Math.ceil(height/step)+2,seed:random()*Math.PI*2};
 }
 
 export function sampleField(x:number,y:number,time:number,px:number,py:number,influence:number,seed:number){

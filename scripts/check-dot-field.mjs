@@ -45,7 +45,8 @@ if (!feature) {
   process.exit(0);
 }
 
-assert.ok(html.every(page => (page.match(/<canvas class="dot-field" aria-hidden="true"><\/canvas>/g) || []).length === 1));
+const homeOnly=(await readFile(path.join(root,"src/App.tsx"),"utf8")).includes('(path==="/"||path==="")&&<DotField/>');
+assert.deepEqual(html.map(page => (page.match(/<canvas class="dot-field" aria-hidden="true"><\/canvas>/g)||[]).length),paths.map((_,i)=>homeOnly&&i>0?0:1));
 assert.ok(!html[0].includes('class="bit-field"'));
 if (baselineRoot) {
   const oldHtml = await renderRoutes(baselineRoot, paths);
@@ -92,6 +93,13 @@ for (const [width,height] of [[320,568],[390,844],[1920,1080],[3840,2160],[7680,
 }
 assert.ok(component.includes("1-Math.exp(-dt*4)"),"Pointer wake must ease in and out");
 assert.ok(!component.includes("Math.abs(field.current"),"No rectified high-frequency wave flicker");
+const responsive=model.createField(390,844,()=>.5).scale<1;
+if(responsive){
+ const phone=model.createField(390,844,()=>.5),pc=model.createField(1440,900,()=>.5);
+ assert.equal(phone.scale,.55);assert.ok(phone.step<14);assert.equal(pc.scale,1);assert.equal(pc.step,22);
+ assert.ok(component.includes("xx/scale,yy/scale")&&component.includes("px/scale,py/scale"));
+ assert.ok(component.includes("radius=(.65+strength*1.15)*scale"));
+}
 const monochrome=component.includes("rgba(255,255,255,${alpha})");
 if(monochrome){
  assert.ok(component.includes("const animated=()=>!motion.matches;"));
@@ -122,4 +130,4 @@ if(monochrome){
  cleanup();assert.equal(raf.size,0);assert.equal(windowListeners.size,0);assert.equal(documentListeners.size,0);assert.equal(mediaListeners.length,0);
 }else assert.ok(component.includes("rgba(50,140,255"));
 assert.ok(component.includes("()=>seed"),"Resize must preserve the light pattern seed");
-console.log(JSON.stringify({modified:"PASS",behavior:monochrome?"monochrome ambient flow with mobile touch":"blue ambient flow, mobile disabled",routes:paths.length,largestFrameDelta,range,gridCap:3600,pointer:"exponentially eased",layout:baselineRoot?"baseline-identical":"fixture rendered",networkApis:"none"}));
+console.log(JSON.stringify({modified:"PASS",behavior:responsive?"fine monochrome responsive mobile flow":monochrome?"monochrome mobile at desktop scale":"blue ambient flow, mobile disabled",routes:paths.length,backgroundScope:homeOnly?"home only":"all routes",largestFrameDelta,range,gridCap:3600,pointer:"exponentially eased",layout:baselineRoot?"baseline-identical":"fixture rendered",networkApis:"none"}));
