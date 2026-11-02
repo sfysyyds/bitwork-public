@@ -5,19 +5,19 @@ export default function DotField(){
  const ref=useRef<HTMLCanvasElement>(null);
  useEffect(()=>{
   const canvas=ref.current!,ctx=canvas.getContext("2d");if(!ctx)return;
-  const motion=matchMedia("(prefers-reduced-motion: reduce)"),mouse=matchMedia("(hover: hover) and (pointer: fine)");
+  const motion=matchMedia("(prefers-reduced-motion: reduce)");
   const seed=Math.random();
   let width=0,height=0,field=createField(1,1,()=>seed),frame=0,last=0,time=0;
   let targetX=0,targetY=0,px=0,py=0,influence=0,inside=false;
-  const animated=()=>!motion.matches&&mouse.matches;
+  const animated=()=>!motion.matches;
   const paint=()=>{
    ctx.clearRect(0,0,width,height);
    for(let y=1;y<field.rows-1;y++)for(let x=1;x<field.columns-1;x++){
     const xx=x*field.step,yy=y*field.step;if(xx>width||yy>height)continue;
     const strength=sampleField(xx,yy,animated()?time:0,px,py,animated()?influence:0,field.seed);
     const edge=Math.min(1,Math.min(xx,yy,width-xx,height-yy)/65),alpha=(.07+strength*.64)*(.4+.6*edge),radius=.65+strength*1.15;
-    if(strength>.55){ctx.fillStyle=`rgba(50,140,255,${(strength-.55)*.13})`;ctx.beginPath();ctx.arc(xx,yy,radius*2.5,0,Math.PI*2);ctx.fill();}
-    ctx.fillStyle=`rgba(${Math.round(35+strength*65)},${Math.round(100+strength*85)},255,${alpha})`;
+    if(strength>.55){ctx.fillStyle=`rgba(255,255,255,${(strength-.55)*.13})`;ctx.beginPath();ctx.arc(xx,yy,radius*2.5,0,Math.PI*2);ctx.fill();}
+    ctx.fillStyle=`rgba(255,255,255,${alpha})`;
     ctx.beginPath();ctx.arc(xx,yy,radius,0,Math.PI*2);ctx.fill();
    }
   };
@@ -36,11 +36,12 @@ export default function DotField(){
    const dpr=Math.min(devicePixelRatio||1,1.5,Math.sqrt(5000000/(width*height)));canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);
    ctx.setTransform(dpr,0,0,dpr,0,0);paint();start();
   };
-  const pointer=(event:PointerEvent)=>{if(event.pointerType!=="mouse"||!animated())return;if(!inside&&influence<.01){px=event.clientX;py=event.clientY;}targetX=event.clientX;targetY=event.clientY;inside=true;};
+  const pointer=(event:PointerEvent)=>{if(!animated())return;if(!inside&&influence<.01){px=event.clientX;py=event.clientY;}targetX=event.clientX;targetY=event.clientY;inside=true;};
   const leave=()=>{inside=false;};
-  window.addEventListener("pointermove",pointer,{passive:true});document.addEventListener("pointerleave",leave);window.addEventListener("blur",leave);window.addEventListener("resize",resize);
-  document.addEventListener("visibilitychange",start);motion.addEventListener("change",start);mouse.addEventListener("change",start);resize();
-  return()=>{cancelAnimationFrame(frame);window.removeEventListener("pointermove",pointer);document.removeEventListener("pointerleave",leave);window.removeEventListener("blur",leave);window.removeEventListener("resize",resize);document.removeEventListener("visibilitychange",start);motion.removeEventListener("change",start);mouse.removeEventListener("change",start);};
+  const release=(event:PointerEvent)=>{if(event.pointerType!=="mouse")leave();};
+  window.addEventListener("pointerdown",pointer,{passive:true});window.addEventListener("pointermove",pointer,{passive:true});window.addEventListener("pointerup",release,{passive:true});window.addEventListener("pointercancel",leave,{passive:true});document.addEventListener("pointerleave",leave);window.addEventListener("blur",leave);window.addEventListener("resize",resize);
+  document.addEventListener("visibilitychange",start);motion.addEventListener("change",start);resize();
+  return()=>{cancelAnimationFrame(frame);window.removeEventListener("pointerdown",pointer);window.removeEventListener("pointermove",pointer);window.removeEventListener("pointerup",release);window.removeEventListener("pointercancel",leave);document.removeEventListener("pointerleave",leave);window.removeEventListener("blur",leave);window.removeEventListener("resize",resize);document.removeEventListener("visibilitychange",start);motion.removeEventListener("change",start);};
  },[]);
  return <canvas ref={ref} className="dot-field" aria-hidden="true"/>;
 }

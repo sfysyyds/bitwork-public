@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import vm from "node:vm";
 import { pathToFileURL } from "node:url";
 import { build } from "esbuild";
 import { createElement } from "react";
@@ -66,7 +67,7 @@ const css = await readFile(path.join(root, "src/styles/base.css"), "utf8");
 assert.ok(component.includes('matchMedia("(prefers-reduced-motion: reduce)")'));
 assert.ok(component.includes("document.hidden") && component.includes('document.addEventListener("visibilitychange",start)'));
 assert.ok(component.includes('window.addEventListener("pointermove",pointer,{passive:true})'));
-assert.ok(component.includes('event.pointerType!=="mouse"'));
+
 assert.ok(component.includes('aria-hidden="true"'));
 assert.ok(component.includes("Math.min(devicePixelRatio||1,1.5,Math.sqrt(5000000/(width*height)))"), "Canvas backing store must be capped for high-DPR screens.");
 assert.ok(!/\b(fetch|XMLHttpRequest|WebSocket|EventSource)\b/.test(component));
@@ -91,6 +92,34 @@ for (const [width,height] of [[320,568],[390,844],[1920,1080],[3840,2160],[7680,
 }
 assert.ok(component.includes("1-Math.exp(-dt*4)"),"Pointer wake must ease in and out");
 assert.ok(!component.includes("Math.abs(field.current"),"No rectified high-frequency wave flicker");
-assert.ok(component.includes("rgba(50,140,255")&&component.includes("+strength*85"),"Cool-blue light palette");
+const monochrome=component.includes("rgba(255,255,255,${alpha})");
+if(monochrome){
+ assert.ok(component.includes("const animated=()=>!motion.matches;"));
+ assert.ok(!component.includes("pointer: fine"));
+ assert.ok(component.includes('window.addEventListener("pointerdown",pointer,{passive:true})'));
+ assert.ok(component.includes('window.addEventListener("pointerup",release,{passive:true})'));
+ assert.ok(component.includes('window.addEventListener("pointercancel",leave,{passive:true})'));
+ assert.ok(!component.includes("preventDefault"));
+ assert.ok(component.includes('rgba(255,255,255,${(strength-.55)*.13})'),"Halo must stay monochrome too");
+ const raf=new Map(),windowListeners=new Map(),documentListeners=new Map(),mediaListeners=[];let nextFrame=0,cleanup,paints=0,maxInfluence=0,lastInfluence=Infinity,reduced=false;
+ const context={fillStyle:"",clearRect(){paints++;},beginPath(){},arc(){},fill(){},setTransform(){}};
+ const canvas={width:0,height:0,getContext:()=>context};
+ const win={innerWidth:390,innerHeight:844,addEventListener:(n,f)=>windowListeners.set(n,f),removeEventListener:n=>windowListeners.delete(n)};
+ const doc={hidden:false,addEventListener:(n,f)=>documentListeners.set(n,f),removeEventListener:n=>documentListeners.delete(n)};
+ const runtimeSource=component.replace(/^import .*;\r?\n/gm,"").replace("export default function DotField()","function DotField()")+"\nglobalThis.__DotField=DotField;";
+ const {code:runtimeCode}=await (await import("esbuild")).transform(runtimeSource,{loader:"tsx",jsx:"transform"});
+ const runtime={React:{createElement:()=>null},useRef:()=>({current:canvas}),useEffect:fn=>{cleanup=fn();},createField:model.createField,
+  sampleField:(...args)=>{lastInfluence=args[5];maxInfluence=Math.max(maxInfluence,lastInfluence);return model.sampleField(...args);},window:win,document:doc,devicePixelRatio:3,
+  matchMedia:q=>{assert.equal(q,'(prefers-reduced-motion: reduce)');return {get matches(){return reduced;},addEventListener:(n,f)=>mediaListeners.push(f),removeEventListener:(n,f)=>mediaListeners.splice(mediaListeners.indexOf(f),1)};},
+  requestAnimationFrame:fn=>{const id=++nextFrame;raf.set(id,fn);return id;},cancelAnimationFrame:id=>raf.delete(id),Math};
+ vm.runInNewContext(runtimeCode,runtime);runtime.__DotField();
+ const tick=now=>{const [id,fn]=raf.entries().next().value||[];assert.ok(fn,"Mobile animation should keep scheduling frames");raf.delete(id);fn(now);};
+ const mobileInitial=paints;tick(16);tick(50);assert.ok(paints>mobileInitial,"Coarse-pointer mobile should animate without mouse input");
+ windowListeners.get("pointerdown")({pointerType:"touch",clientX:110,clientY:140});tick(84);assert.ok(maxInfluence>0,"Touch should wake the field");
+ windowListeners.get("pointerup")({pointerType:"touch"});tick(118);assert.ok(lastInfluence<maxInfluence,"Touch wake should fade after release");
+ reduced=true;mediaListeners[0]();assert.equal(raf.size,0,"Reduced-motion should stop animation");
+ doc.hidden=true;documentListeners.get("visibilitychange")();assert.equal(raf.size,0,"Hidden page should not animate");doc.hidden=false;reduced=false;documentListeners.get("visibilitychange")();assert.equal(raf.size,1,"Visible mobile page should resume");
+ cleanup();assert.equal(raf.size,0);assert.equal(windowListeners.size,0);assert.equal(documentListeners.size,0);assert.equal(mediaListeners.length,0);
+}else assert.ok(component.includes("rgba(50,140,255"));
 assert.ok(component.includes("()=>seed"),"Resize must preserve the light pattern seed");
-console.log(JSON.stringify({modified:"PASS",behavior:"smooth cool-blue fixed-dot light field",routes:paths.length,largestFrameDelta,range,gridCap:3600,pointer:"exponentially eased",layout:baselineRoot?"baseline-identical":"fixture rendered",networkApis:"none"}));
+console.log(JSON.stringify({modified:"PASS",behavior:monochrome?"monochrome ambient flow with mobile touch":"blue ambient flow, mobile disabled",routes:paths.length,largestFrameDelta,range,gridCap:3600,pointer:"exponentially eased",layout:baselineRoot?"baseline-identical":"fixture rendered",networkApis:"none"}));
