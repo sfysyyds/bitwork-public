@@ -1,3 +1,4 @@
+import DotField from "./components/DotField";
 import Home from "./pages/Home";
 import Resources from "./pages/Resources";
 import MosaicTransitions from "./components/MosaicTransitions";
@@ -16,5 +17,5 @@ export default function App({ pathname }: { pathname: string }) {
     try { id = match ? decodeURIComponent(match[1]) : ""; } catch { /* Invalid paths show the existing not-found view. */ }
     page = <Resources id={id}/>;
   }
-  return <><MosaicTransitions/>{page}</>;
+  return <><DotField/><MosaicTransitions/>{page}</>;
 }

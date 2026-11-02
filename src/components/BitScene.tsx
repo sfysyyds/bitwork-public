@@ -5,7 +5,7 @@ export default function BitScene(){
  const ref=useRef<HTMLCanvasElement>(null);
  useEffect(()=>{
   const canvas=ref.current!,ctx=canvas.getContext("2d");if(!ctx)return;
-  const landing=canvas.closest<HTMLElement>(".landing")!,motion=matchMedia("(prefers-reduced-motion: reduce)");
+  const motion=matchMedia("(prefers-reduced-motion: reduce)");
   const mask=document.createElement("canvas");mask.width=320;mask.height=360;
   const m=mask.getContext("2d")!;m.font="900 360px Arial";m.textAlign="center";m.fillText("B",160,309);
   const pixels=m.getImageData(0,0,320,360).data,points:{x:number;y:number}[]=[];
@@ -36,10 +36,8 @@ export default function BitScene(){
   };
   const start=()=>{cancelAnimationFrame(frame);if(visible&&!document.hidden)frame=requestAnimationFrame(draw);};
   const observer=new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;start();});observer.observe(canvas);
-  const pointer=(e:PointerEvent)=>{if(e.pointerType!=="mouse")return;const r=landing.getBoundingClientRect();landing.style.setProperty("--pointer-x",`${e.clientX-r.left}px`);landing.style.setProperty("--pointer-y",`${e.clientY-r.top}px`);landing.style.setProperty("--pointer-glow","1");};
-  const leave=()=>landing.style.setProperty("--pointer-glow","0");
-  landing.addEventListener("pointermove",pointer);landing.addEventListener("pointerleave",leave);document.addEventListener("visibilitychange",start);motion.addEventListener("change",start);window.addEventListener("resize",start);
-  return()=>{cancelAnimationFrame(frame);observer.disconnect();landing.removeEventListener("pointermove",pointer);landing.removeEventListener("pointerleave",leave);document.removeEventListener("visibilitychange",start);motion.removeEventListener("change",start);window.removeEventListener("resize",start);};
+  document.addEventListener("visibilitychange",start);motion.addEventListener("change",start);window.addEventListener("resize",start);
+  return()=>{cancelAnimationFrame(frame);observer.disconnect();document.removeEventListener("visibilitychange",start);motion.removeEventListener("change",start);window.removeEventListener("resize",start);};
  },[]);
  return <canvas ref={ref} className="bit-scene" width={320} height={360} role="img" aria-label="THE NEW BIT，流动几何点阵 B"/>;
 }
