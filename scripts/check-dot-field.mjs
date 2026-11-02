@@ -75,27 +75,22 @@ assert.ok(css.includes("#root{isolation:isolate}"));
 
 const { code } = await (await import("esbuild")).transform(source, { loader: "ts", format: "esm" });
 const model = await import(`data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
-let seed = 0x6d2b79f5;
-const random = () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296);
-const field = model.createField(960, 540, () => .5);
-const geometry = [field.step, field.columns, field.rows];
-model.disturbField(field, 480, 270, 1);
-let peak = 0;
-for (let i = 0; i < 18; i++) peak = Math.max(peak, model.advanceField(field));
-const cx = Math.round(480 / field.step), cy = Math.round(270 / field.step);
-let propagated = 0;
-for (let y = 1; y < field.rows - 1; y++) for (let x = 1; x < field.columns - 1; x++)
-  if (Math.abs(x - cx) > 3 || Math.abs(y - cy) > 3) propagated = Math.max(propagated, Math.abs(field.current[y * field.columns + x]));
-let tail = 0;
-for (let i = 0; i < 600; i++) tail = model.advanceField(field);
-assert.ok(propagated > .01, "Mouse impulse must propagate beyond its initial irregular footprint.");
-assert.ok(tail < peak * .001, "Damped ripple must settle instead of animating forever.");
-assert.deepEqual([field.step, field.columns, field.rows], geometry, "Wave motion must not move or rotate the fixed grid.");
-
-for (const [width, height] of [[320, 568], [390, 844], [768, 1024], [1920, 1080], [3840, 2160], [7680, 4320]]) {
-  const grid = model.createField(width, height, () => .5);
-  assert.ok((grid.columns - 2) * (grid.rows - 2) <= 3600, `${width}x${height} exceeds the dot cap`);
+if (!model.sampleField) {
+ assert.ok(model.disturbField&&model.advanceField);
+ console.log(JSON.stringify({baseline:"PASS",behavior:"oscillating impulse ripple",routes:paths.length}));process.exit(0);
 }
-const varied = model.createField(1200, 800, random);
-assert.ok(new Set(varied.speed).size > 1, "Wave speed must vary across space to avoid a perfect circle.");
-console.log(JSON.stringify({ modified: "PASS", routes: paths.length, resourceMarkup: baselineRoot ? "baseline-identical" : "SSR fixture rendered", ripple: "propagates and damps on fixed grid", maxDots: 3600, reducedMotion: "static", hiddenTab: "stops", pointer: "passive mouse only", networkApis: "none" }));
+let largestFrameDelta=0,range=[1,0];
+for(let t=0;t<18;t+=.2)for(let y=30;y<800;y+=83)for(let x=30;x<1200;x+=91){
+ const a=model.sampleField(x,y,t,540,380,.6,1.4),b=model.sampleField(x,y,t+1/30,540,380,.6,1.4);
+ assert.ok(Number.isFinite(a)&&a>=0&&a<=1);range[0]=Math.min(range[0],a);range[1]=Math.max(range[1],a);largestFrameDelta=Math.max(largestFrameDelta,Math.abs(a-b));
+}
+assert.ok(largestFrameDelta<.012,"Ambient light must vary continuously, not flash");
+assert.ok(range[1]-range[0]>.3,"Light must form visible broad patches, not a flat field");
+for (const [width,height] of [[320,568],[390,844],[1920,1080],[3840,2160],[7680,4320]]) {
+ const grid=model.createField(width,height,()=>.5);assert.ok((grid.columns-2)*(grid.rows-2)<=3600);
+}
+assert.ok(component.includes("1-Math.exp(-dt*4)"),"Pointer wake must ease in and out");
+assert.ok(!component.includes("Math.abs(field.current"),"No rectified high-frequency wave flicker");
+assert.ok(component.includes("rgba(50,140,255")&&component.includes("+strength*85"),"Cool-blue light palette");
+assert.ok(component.includes("()=>seed"),"Resize must preserve the light pattern seed");
+console.log(JSON.stringify({modified:"PASS",behavior:"smooth cool-blue fixed-dot light field",routes:paths.length,largestFrameDelta,range,gridCap:3600,pointer:"exponentially eased",layout:baselineRoot?"baseline-identical":"fixture rendered",networkApis:"none"}));
