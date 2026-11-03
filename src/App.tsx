@@ -1,9 +1,12 @@
+import { useEffect } from "react";
+import { installControlReveal } from "./control-reveal";
 import DotField from "./components/DotField";
 import Home from "./pages/Home";
 import Resources from "./pages/Resources";
 import MosaicTransitions from "./components/MosaicTransitions";
 
 export default function App({ pathname }: { pathname: string }) {
+  useEffect(installControlReveal,[]);
   const base = import.meta.env.BASE_URL;
   let path = pathname;
   if (path.startsWith(base)) path = `/${path.slice(base.length)}`;
