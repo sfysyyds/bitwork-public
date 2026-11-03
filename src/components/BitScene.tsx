@@ -1,11 +1,12 @@
+import { useReducedEffects } from "../motion-preference";
 "use client";
 import {useEffect,useRef} from "react";
 
 export default function BitScene(){
+ const { reduced } = useReducedEffects();
  const ref=useRef<HTMLCanvasElement>(null);
  useEffect(()=>{
   const canvas=ref.current!,ctx=canvas.getContext("2d");if(!ctx)return;
-  const motion=matchMedia("(prefers-reduced-motion: reduce)");
   const mask=document.createElement("canvas");mask.width=320;mask.height=360;
   const m=mask.getContext("2d")!;m.font="900 360px Arial";m.textAlign="center";m.fillText("B",160,309);
   const pixels=m.getImageData(0,0,320,360).data,points:{x:number;y:number}[]=[];
@@ -13,14 +14,14 @@ export default function BitScene(){
   let frame=0,last=0,visible=false;
   const draw=(time:number)=>{
    if(!visible||document.hidden)return;
-   if(time-last>32||motion.matches){
+   if(time-last>32||reduced){
     last=time;const size=canvas.clientWidth,dpr=Math.min(devicePixelRatio||1,2);
     if(canvas.width!==Math.round(size*dpr)){canvas.width=Math.round(size*dpr);canvas.height=Math.round(size*360/320*dpr);}
     ctx.setTransform(canvas.width/320,0,0,canvas.width/320,0,0);ctx.clearRect(0,0,320,360);
-    const t=motion.matches?0:time/1000;
+    const t=reduced?0:time/1000;
     for(const p of points){
      const x=p.x,y=p.y;
-     const phase=motion.matches?0:((t*.7-(p.x+p.y*.55)/60)%3+3)%3;
+     const phase=reduced?0:((t*.7-(p.x+p.y*.55)/60)%3+3)%3;
      const shape=Math.floor(phase),fraction=phase-shape,mix=fraction*fraction*(3-2*fraction);
      const paint=(form:number,alpha:number)=>{if(alpha===0)return;ctx.fillStyle=`rgba(255,255,255,${alpha*.9})`;ctx.beginPath();
       if(form===0)ctx.rect(x-2,y-2,4,4);
@@ -32,12 +33,12 @@ export default function BitScene(){
      paint(shape,1-mix);paint((shape+1)%3,mix);
     }
    }
-   if(!motion.matches)frame=requestAnimationFrame(draw);
+   if(!reduced)frame=requestAnimationFrame(draw);
   };
   const start=()=>{cancelAnimationFrame(frame);if(visible&&!document.hidden)frame=requestAnimationFrame(draw);};
   const observer=new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;start();});observer.observe(canvas);
-  document.addEventListener("visibilitychange",start);motion.addEventListener("change",start);window.addEventListener("resize",start);
-  return()=>{cancelAnimationFrame(frame);observer.disconnect();document.removeEventListener("visibilitychange",start);motion.removeEventListener("change",start);window.removeEventListener("resize",start);};
- },[]);
+  document.addEventListener("visibilitychange",start);window.addEventListener("resize",start);
+  return()=>{cancelAnimationFrame(frame);observer.disconnect();document.removeEventListener("visibilitychange",start);window.removeEventListener("resize",start);};
+ },[reduced]);
  return <canvas ref={ref} className="bit-scene" width={320} height={360} role="img" aria-label="THE NEW BIT，流动几何点阵 B"/>;
 }

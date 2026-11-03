@@ -1,11 +1,13 @@
 import assert from "node:assert/strict";
-import { readFile, mkdir } from "node:fs/promises";
+import { readFile, readdir, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { build } from "esbuild";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const { items } = JSON.parse(await readFile(path.join(root, "src/data/resources.json"), "utf8"));
+const routes = (await readdir(path.join(root, "dist/resources"), { withFileTypes: true })).filter(entry => entry.isDirectory()).map(entry => entry.name).sort();
+assert.deepEqual(routes, items.map(item => item.id).sort(), "Built resource routes must match the current catalog, including the empty-catalog case.");
 for (const item of items) {
   const html = await readFile(path.join(root, "dist/resources", item.id, "index.html"), "utf8");
   if (item.screenshots.length) {
@@ -19,8 +21,13 @@ await build({ absWorkingDir: root, stdin: { resolveDir: root, contents: 'export 
 const { ResourceArticle } = await import(pathToFileURL(outfile).href);
 const { createElement } = await import("react");
 const { renderToStaticMarkup } = await import("react-dom/server");
+const fixture = {
+  id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", title: "Gallery fixture", english: "", genre: "", version: "",
+  intro: "", downloadUrl: "", gameUrl: "", articleUrl: "", coverUrl: "", screenshots: [],
+  description: "", installation: "", changelog: "", credits: "",
+};
 for (const count of [0, 1, 8]) {
-  const html = renderToStaticMarkup(createElement(ResourceArticle, { resource: { ...items[0], screenshots: Array.from({ length: count }, (_, i) => ({ url: `/media/fixture-${i}.png`, caption: `CG ${i + 1}` })) } }));
+  const html = renderToStaticMarkup(createElement(ResourceArticle, { resource: { ...fixture, screenshots: Array.from({ length: count }, (_, i) => ({ url: `/media/fixture-${i}.png`, caption: `CG ${i + 1}` })) } }));
   assert.equal(html.includes('class="resource-gallery-stack"'), count > 0);
   assert.equal(html.includes('id="screenshots"'), count > 0);
   if (count) assert.ok(html.includes(`data-count="${count}"`));

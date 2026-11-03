@@ -1,6 +1,7 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { randomUUID } from "node:crypto";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const manifest = JSON.parse(await readFile(path.join(root, "src", "data", "resources.json"), "utf8"));
@@ -14,12 +15,19 @@ for (const item of manifest.items) {
   const directory = path.join(root, "resources", item.id);
   const file = path.join(directory, "index.html");
   await mkdir(directory, { recursive: true });
+  let existing;
   try {
-    const existing = await readFile(file, "utf8");
-    if (!existing.includes(marker)) throw new Error(`Refusing to replace a non-generated route: ${file}`);
+    existing = await readFile(file, "utf8");
   } catch (error) {
     if (error.code !== "ENOENT") throw error;
-    await writeFile(file, `${marker}\n${route}`, "utf8");
+  }
+  if (existing !== undefined && !existing.includes(marker)) throw new Error(`Refusing to replace a non-generated route: ${file}`);
+  const temporary = `${file}.${randomUUID()}.tmp`;
+  try {
+    await writeFile(temporary, `${marker}\n${route}`, "utf8");
+    await rename(temporary, file);
+  } finally {
+    await rm(temporary, { force: true });
   }
 }
 console.log(`Prepared ${seen.size} static detail route(s).`);

@@ -45,7 +45,7 @@ if (!feature) {
   process.exit(0);
 }
 
-const homeOnly=(await readFile(path.join(root,"src/App.tsx"),"utf8")).includes('(path==="/"||path==="")&&<DotField/>');
+const homeOnly=(await readFile(path.join(root,"src/components/PageFrame.tsx"),"utf8")).includes("{home && <DotField/>}");
 assert.deepEqual(html.map(page => (page.match(/<canvas class="dot-field" aria-hidden="true"><\/canvas>/g)||[]).length),paths.map((_,i)=>homeOnly&&i>0?0:1));
 assert.ok(!html[0].includes('class="bit-field"'));
 if (baselineRoot) {
@@ -65,7 +65,8 @@ if (baselineRoot) {
 const source = await readFile(modelPath, "utf8");
 const component = await readFile(path.join(root, "src/components/DotField.tsx"), "utf8");
 const css = await readFile(path.join(root, "src/styles/base.css"), "utf8");
-assert.ok(component.includes('matchMedia("(prefers-reduced-motion: reduce)")'));
+const motion = await readFile(path.join(root,"src/motion-preference.ts"),"utf8");
+assert.ok(motion.includes('matchMedia("(prefers-reduced-motion: reduce)")'), "Reduced-motion preference must be shared.");
 assert.ok(component.includes("document.hidden") && component.includes('document.addEventListener("visibilitychange",start)'));
 assert.ok(component.includes('window.addEventListener("pointermove",pointer,{passive:true})'));
 
@@ -102,32 +103,31 @@ if(responsive){
 }
 const monochrome=component.includes("rgba(255,255,255,${alpha})");
 if(monochrome){
- assert.ok(component.includes("const animated=()=>!motion.matches;"));
+  assert.ok(component.includes("const animated=()=>!reduced;"));
  assert.ok(!component.includes("pointer: fine"));
  assert.ok(component.includes('window.addEventListener("pointerdown",pointer,{passive:true})'));
  assert.ok(component.includes('window.addEventListener("pointerup",release,{passive:true})'));
  assert.ok(component.includes('window.addEventListener("pointercancel",leave,{passive:true})'));
  assert.ok(!component.includes("preventDefault"));
  assert.ok(component.includes('rgba(255,255,255,${(strength-.55)*.13})'),"Halo must stay monochrome too");
- const raf=new Map(),windowListeners=new Map(),documentListeners=new Map(),mediaListeners=[];let nextFrame=0,cleanup,paints=0,maxInfluence=0,lastInfluence=Infinity,reduced=false;
+  const raf=new Map(),windowListeners=new Map(),documentListeners=new Map();let nextFrame=0,cleanup,paints=0,maxInfluence=0,lastInfluence=Infinity;
  const context={fillStyle:"",clearRect(){paints++;},beginPath(){},arc(){},fill(){},setTransform(){}};
  const canvas={width:0,height:0,getContext:()=>context};
  const win={innerWidth:390,innerHeight:844,addEventListener:(n,f)=>windowListeners.set(n,f),removeEventListener:n=>windowListeners.delete(n)};
  const doc={hidden:false,addEventListener:(n,f)=>documentListeners.set(n,f),removeEventListener:n=>documentListeners.delete(n)};
- const runtimeSource=component.replace(/^import .*;\r?\n/gm,"").replace("export default function DotField()","function DotField()")+"\nglobalThis.__DotField=DotField;";
+  const runtimeSource=component.replace(/^import .*;\r?\n/gm,"").replace("export default function DotField()","function DotField()").replace("const { reduced } = useReducedEffects();","const reduced=globalThis.__reduced;")+"\nglobalThis.__DotField=DotField;";
  const {code:runtimeCode}=await (await import("esbuild")).transform(runtimeSource,{loader:"tsx",jsx:"transform"});
- const runtime={React:{createElement:()=>null},useRef:()=>({current:canvas}),useEffect:fn=>{cleanup=fn();},createField:model.createField,
+  const runtime={React:{createElement:()=>null},useRef:()=>({current:canvas}),useEffect:fn=>{cleanup?.();cleanup=fn();},createField:model.createField,__reduced:false,
   sampleField:(...args)=>{lastInfluence=args[5];maxInfluence=Math.max(maxInfluence,lastInfluence);return model.sampleField(...args);},window:win,document:doc,devicePixelRatio:3,
-  matchMedia:q=>{assert.equal(q,'(prefers-reduced-motion: reduce)');return {get matches(){return reduced;},addEventListener:(n,f)=>mediaListeners.push(f),removeEventListener:(n,f)=>mediaListeners.splice(mediaListeners.indexOf(f),1)};},
   requestAnimationFrame:fn=>{const id=++nextFrame;raf.set(id,fn);return id;},cancelAnimationFrame:id=>raf.delete(id),Math};
  vm.runInNewContext(runtimeCode,runtime);runtime.__DotField();
  const tick=now=>{const [id,fn]=raf.entries().next().value||[];assert.ok(fn,"Mobile animation should keep scheduling frames");raf.delete(id);fn(now);};
  const mobileInitial=paints;tick(16);tick(50);assert.ok(paints>mobileInitial,"Coarse-pointer mobile should animate without mouse input");
  windowListeners.get("pointerdown")({pointerType:"touch",clientX:110,clientY:140});tick(84);assert.ok(maxInfluence>0,"Touch should wake the field");
  windowListeners.get("pointerup")({pointerType:"touch"});tick(118);assert.ok(lastInfluence<maxInfluence,"Touch wake should fade after release");
- reduced=true;mediaListeners[0]();assert.equal(raf.size,0,"Reduced-motion should stop animation");
- doc.hidden=true;documentListeners.get("visibilitychange")();assert.equal(raf.size,0,"Hidden page should not animate");doc.hidden=false;reduced=false;documentListeners.get("visibilitychange")();assert.equal(raf.size,1,"Visible mobile page should resume");
- cleanup();assert.equal(raf.size,0);assert.equal(windowListeners.size,0);assert.equal(documentListeners.size,0);assert.equal(mediaListeners.length,0);
+  runtime.__reduced=true;runtime.__DotField();assert.equal(raf.size,0,"Reduced-motion should stop animation");
+  doc.hidden=true;documentListeners.get("visibilitychange")();assert.equal(raf.size,0,"Hidden page should not animate");doc.hidden=false;runtime.__reduced=false;runtime.__DotField();assert.equal(raf.size,1,"Visible mobile page should resume");
+  cleanup();assert.equal(raf.size,0);assert.equal(windowListeners.size,0);assert.equal(documentListeners.size,0);
 }else assert.ok(component.includes("rgba(50,140,255"));
 assert.ok(component.includes("()=>seed"),"Resize must preserve the light pattern seed");
 console.log(JSON.stringify({modified:"PASS",behavior:responsive?"fine monochrome responsive mobile flow":monochrome?"monochrome mobile at desktop scale":"blue ambient flow, mobile disabled",routes:paths.length,backgroundScope:homeOnly?"home only":"all routes",largestFrameDelta,range,gridCap:3600,pointer:"exponentially eased",layout:baselineRoot?"baseline-identical":"fixture rendered",networkApis:"none"}));

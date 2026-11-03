@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import { mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, realpath, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -14,6 +14,12 @@ const allowedFields = new Set([
   "id", "title", "english", "genre", "version", "intro", "downloadUrl", "gameUrl", "articleUrl", "coverUrl", "screenshots",
   "description", "installation", "changelog", "credits",
 ]);
+const maxCatalogBytes = 5 * 1024 * 1024;
+const maxCatalogItems = 500;
+const maxScreenshotsPerItem = 100;
+const maxTextLength = 100_000;
+const maxCaptionLength = 2_000;
+const maxImageBytes = 20 * 1024 * 1024;
 
 export function safeId(value) {
   if (typeof value !== "string" || !/^[a-f0-9-]{1,80}$/i.test(value)) throw new Error("Published resource has an unsafe id.");
@@ -78,15 +84,68 @@ function getPublishId() {
   return value;
 }
 
-async function fetchPublic(url) {
+export async function fetchPublic(url, timeoutMs = 30_000) {
   for (let attempt = 0; ; attempt++) {
     try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(30000), redirect: "error" });
+      const response = await fetch(url, { signal: AbortSignal.timeout(timeoutMs), redirect: "error" });
       if (attempt || response.status < 500) return response;
       await response.body?.cancel();
     } catch (error) { if (attempt) throw error; }
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
+}
+
+export async function readBoundedBytes(response, maxBytes, label) {
+  const declared = Number(response.headers.get("content-length") || 0);
+  if (declared > maxBytes) {
+    await response.body?.cancel().catch(() => {});
+    throw new Error(`${label} exceeds ${maxBytes} byte limit.`);
+  }
+  if (!response.body) return Buffer.alloc(0);
+  const reader = response.body.getReader();
+  const chunks = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        throw new Error(`${label} exceeds ${maxBytes} byte limit.`);
+      }
+      chunks.push(Buffer.from(value));
+    }
+  } catch (error) {
+    await reader.cancel(error).catch(() => {});
+    throw error;
+  } finally {
+    reader.releaseLock();
+  }
+  return Buffer.concat(chunks, total);
+}
+
+export function validateCatalog(body) {
+  if (!body || !Array.isArray(body.items) || !/^[a-f0-9]{64}$/i.test(body.publicRevision || "")) {
+    throw new Error("The approved public catalog must return an items array and SHA-256 publicRevision.");
+  }
+  if (body.items.length > maxCatalogItems) throw new Error(`Public catalog exceeds ${maxCatalogItems} resource limit.`);
+  const textFields = ["title", "english", "genre", "version", "intro", "downloadUrl", "gameUrl", "articleUrl", "coverUrl", "description", "installation", "changelog", "credits"];
+  for (const [index, item] of body.items.entries()) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) throw new Error(`Public catalog resource ${index + 1} must be an object.`);
+    if (Array.isArray(item.screenshots) && item.screenshots.length > maxScreenshotsPerItem) {
+      throw new Error(`Public catalog resource ${index + 1} exceeds ${maxScreenshotsPerItem} screenshots.`);
+    }
+    if (item.screenshots !== undefined && !Array.isArray(item.screenshots)) throw new Error(`Public catalog resource ${index + 1} screenshots must be an array.`);
+    for (const field of textFields) {
+      if (typeof item[field] === "string" && item[field].length > maxTextLength) throw new Error(`Public catalog resource ${index + 1} field ${field} exceeds ${maxTextLength} characters.`);
+    }
+    for (const [shotIndex, shot] of (item.screenshots || []).entries()) {
+      if (!shot || typeof shot !== "object" || Array.isArray(shot)) throw new Error(`Public catalog resource ${index + 1} screenshot ${shotIndex + 1} must be an object.`);
+      if (typeof shot.caption === "string" && shot.caption.length > maxCaptionLength) throw new Error(`Public catalog resource ${index + 1} screenshot ${shotIndex + 1} caption exceeds ${maxCaptionLength} characters.`);
+    }
+  }
+  return body;
 }
 
 export function isExternalImage(value) {
@@ -107,10 +166,7 @@ async function copyPublicImage(value, name) {
   const mime = (response.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
   const extension = allowedImageTypes.get(mime);
   if (!extension) throw new Error(`Public media is not an allowed image type: ${mime || "missing content type"}`);
-  const declared = Number(response.headers.get("content-length") || 0);
-  if (declared > 20 * 1024 * 1024) throw new Error(`Image exceeds 20 MiB limit: ${value}`);
-  const bytes = Buffer.from(await response.arrayBuffer());
-  if (bytes.length > 20 * 1024 * 1024) throw new Error(`Image exceeds 20 MiB limit: ${value}`);
+  const bytes = await readBoundedBytes(response, maxImageBytes, `Image ${value}`);
   const fingerprint = createHash("sha256").update(bytes).digest("hex").slice(0, 16);
   const file = `${name}-${fingerprint}.${extension}`;
   await mkdir(path.join(root, "public", "media"), { recursive: true });
@@ -122,10 +178,7 @@ async function snapshot() {
   const publishId = getPublishId();
   const response = await fetchPublic(`${source}/api/site-catalog`);
   if (!response.ok) throw new Error(`Approved public catalog fetch failed (${response.status}).`);
-  const body = await response.json();
-  if (!Array.isArray(body.items) || !/^[a-f0-9]{64}$/i.test(body.publicRevision || "")) {
-    throw new Error("The approved public catalog must return an items array and SHA-256 publicRevision.");
-  }
+  const body = validateCatalog(JSON.parse((await readBoundedBytes(response, maxCatalogBytes, "Public catalog")).toString("utf8")));
 
   const items = [];
   const activeIds = new Set();
@@ -172,4 +225,10 @@ async function snapshot() {
   for (const url of activeMedia) await stat(path.join(root, "public", url.slice(1)));
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await snapshot();
+export async function isDirectInvocation(argvPath, modulePath = fileURLToPath(import.meta.url)) {
+  if (!argvPath) return false;
+  try { return await realpath(argvPath) === await realpath(modulePath); }
+  catch { return false; }
+}
+
+if (await isDirectInvocation(process.argv[1])) await snapshot();

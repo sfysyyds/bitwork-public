@@ -19,6 +19,7 @@ export default defineConfig({
   plugins: [react(), seoPages({ root, base, updatedAt }), { name: "mosaic-navigation", transformIndexHtml: () => [{ tag: "style", children: "@view-transition { navigation: auto; }", injectTo: "head-prepend" }] }],
   build: {
     outDir: resolve(root, "dist"),
+    cssCodeSplit: false, // Keep prerendered pages styled even without JavaScript.
     emptyOutDir: true,
     rollupOptions: {
       input: {

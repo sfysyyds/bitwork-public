@@ -43,7 +43,8 @@ function Section({ id, title, children, installationGuide = false }: { id: strin
 
 export default function ResourceArticle({ resource }: { resource: ResourceItem }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [activeShot, setActiveShot] = useState<number | null>(null);
+  const [activeShot, setActiveShot] = useState<number | null>(null), [imageState, setImageState] = useState<"loading" | "loaded" | "failed">("loading"), [imageAttempt, setImageAttempt] = useState(0);
+  const imageRequest = useRef(0), galleryTrigger = useRef<HTMLElement | null>(null);
   const shots = (resource.screenshots ?? []).filter(shot => resourceMediaUrl(shot.url));
   const cover = resourceMediaUrl(resource.coverUrl);
   const intro = resource.intro?.trim() ?? "";
@@ -61,18 +62,31 @@ export default function ResourceArticle({ resource }: { resource: ResourceItem }
   const hasDetails = leadSections.length > 0 || otherSections.length > 0 || shots.length > 0;
   const selectedShot = activeShot === null ? null : shots[activeShot];
 
-  function openShot(index: number) {
+  function openShot(index: number, trigger?: HTMLElement) {
     const dialog = dialogRef.current;
     if (!dialog || !shots[index]) return;
+    if (!dialog.open) galleryTrigger.current = trigger ?? null;
+    imageRequest.current++;
+    setImageState("loading");
+    setImageAttempt(0);
     setActiveShot(index);
     if (!dialog.open) dialog.showModal();
   }
 
   function closeShot() {
     const dialog = dialogRef.current;
+    imageRequest.current++;
     setActiveShot(null);
     if (dialog?.open) dialog.close();
   }
+
+  function retryShot() {
+    imageRequest.current++;
+    setImageState("loading");
+    setImageAttempt(attempt => attempt + 1);
+  }
+
+  const currentImageRequest = imageRequest.current;
 
   return <article className="resource-article">
     <header className="resource-hero">
@@ -92,7 +106,7 @@ export default function ResourceArticle({ resource }: { resource: ResourceItem }
     </header>
 
     {hasDetails && <div className="resource-article-layout">
-      <nav className="resource-toc" aria-label="页面目录">
+      <nav className="resource-toc" aria-label="页面目录（窄屏可横向滚动）">
         <strong>本页内容</strong>
         {leadSections.map(section => <a key={section.id} href={`#${section.id}`}>{section.title}</a>)}
         {shots.length > 0 && <a href="#screenshots">游戏截图</a>}
@@ -102,13 +116,13 @@ export default function ResourceArticle({ resource }: { resource: ResourceItem }
         {leadSections.map(section => <Section key={section.id} id={section.id} title={section.title}>{section.content}</Section>)}
         {shots.length > 0 && <section className="resource-article-section" id="screenshots" aria-labelledby="screenshots-title">
           <h2 id="screenshots-title">游戏截图</h2>
-          <button className="resource-gallery-stack" type="button" data-count={shots.length} onClick={() => openShot(0)} aria-label={`查看全部 ${shots.length} 张 CG`}>
+          <button className="resource-gallery-stack" type="button" data-count={shots.length} onClick={event => openShot(0, event.currentTarget)} aria-label={`查看全部 ${shots.length} 张 CG`}>
             <span className="resource-gallery-stack-front">
               <img {...resourceImageProps(shots[0].url, "(max-width: 640px) calc(100vw - 52px), 460px")} alt="" loading="lazy" />
               <span className="resource-gallery-stack-copy"><span><Images size={17}/>查看全部 CG</span><small>{shots.length} 张<ChevronRight size={16}/></small></span>
             </span>
           </button>
-          <div className="resource-gallery">{shots.map((shot, index) => <button className="resource-shot" type="button" key={`${shot.url}-${index}`} onClick={() => openShot(index)} aria-label={`放大查看截图 ${index + 1}`}>
+          <div className="resource-gallery">{shots.map((shot, index) => <button className="resource-shot" type="button" key={`${shot.url}-${index}`} onClick={event => openShot(index, event.currentTarget)} aria-label={`放大查看截图 ${index + 1}`}>
             <img {...resourceImageProps(shot.url, "(max-width: 600px) calc(100vw - 40px), (max-width: 1100px) 40vw, 460px")} alt={shot.caption || `${resource.title}截图 ${index + 1}`} loading="lazy" />
             <span>{shot.caption?.trim() || `截图 ${index + 1}`}</span>
           </button>)}</div>
@@ -117,7 +131,7 @@ export default function ResourceArticle({ resource }: { resource: ResourceItem }
       </div>
     </div>}
 
-    <dialog className="resource-lightbox" ref={dialogRef} aria-label="截图预览" onKeyDown={event => {
+    <dialog className="resource-lightbox" ref={dialogRef} aria-label="截图预览" onClose={() => { galleryTrigger.current?.focus(); galleryTrigger.current = null; }} onKeyDown={event => {
       if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
         event.preventDefault();
         openShot((activeShot ?? 0) + (event.key === "ArrowLeft" ? -1 : 1));
@@ -126,14 +140,16 @@ export default function ResourceArticle({ resource }: { resource: ResourceItem }
       if (event.target === dialogRef.current) closeShot();
     }}>
       <header className="resource-lightbox-toolbar">
-        <span>截图预览 {activeShot !== null && <small>{activeShot + 1} / {shots.length}</small>}</span>
+        <span aria-live="polite" aria-atomic="true">截图预览 {activeShot !== null && <small>第 {activeShot + 1} / {shots.length} 张</small>}</span>
         <button className="resource-lightbox-close" type="button" onClick={closeShot} aria-label="关闭截图"><X size={20}/></button>
       </header>
       {selectedShot && <figure>
-        <div className="resource-lightbox-image" onClick={event => { if (event.target === event.currentTarget) closeShot(); }}>
-          <img src={fullImageSrc(selectedShot.url)} alt={selectedShot.caption || `${resource.title}截图 ${(activeShot ?? 0) + 1}`} decoding="async" />
+        <div className="resource-lightbox-image" data-state={imageState} aria-busy={imageState === "loading"} onClick={event => { if (event.target === event.currentTarget) closeShot(); }}>
+          <img key={`${selectedShot.url}-${imageAttempt}`} src={fullImageSrc(selectedShot.url)} alt={selectedShot.caption || `${resource.title}截图 ${(activeShot ?? 0) + 1}`} decoding="async" onLoad={() => { if (imageRequest.current === currentImageRequest) setImageState("loaded"); }} onError={() => { if (imageRequest.current === currentImageRequest) setImageState("failed"); }} />
+          {imageState === "loading" && <p className="resource-lightbox-loading" role="status" aria-live="polite">正在加载第 {(activeShot ?? 0) + 1} 张截图…</p>}
+          {imageState === "failed" && <div className="resource-lightbox-error" role="alert"><span>截图加载失败。</span><button type="button" onClick={retryShot}>重试</button></div>}
         </div>
-        <figcaption className="resource-lightbox-caption">{selectedShot.caption?.trim() || `截图 ${(activeShot ?? 0) + 1}`}</figcaption>
+        <figcaption className="resource-lightbox-caption">{selectedShot.caption?.trim() || `截图 ${(activeShot ?? 0) + 1}`}<a className="resource-lightbox-original" href={fullImageSrc(selectedShot.url)} target="_blank" rel="noopener noreferrer">打开原图（新标签页）</a></figcaption>
       </figure>}
       {selectedShot && shots.length > 1 && <nav className="resource-lightbox-nav" aria-label="CG 翻页">
         <button type="button" disabled={activeShot === 0} onClick={() => openShot((activeShot ?? 0) - 1)}><ChevronLeft size={18}/>上一张</button>

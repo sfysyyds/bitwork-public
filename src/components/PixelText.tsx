@@ -1,13 +1,14 @@
+import { useReducedEffects } from "../motion-preference";
 "use client";
 import { useEffect, useRef } from "react";
 
 export default function PixelText({ text, interactive = false, className = "" }: { text: string; interactive?: boolean; className?: string }) {
+  const { reduced } = useReducedEffects();
   const rootRef = useRef<HTMLSpanElement>(null), canvasRef = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const root = rootRef.current!, canvas = canvasRef.current!, ctx = canvas.getContext("2d");
     if (!ctx) return;
     const source = document.createElement("canvas"), low = document.createElement("canvas"), lowCtx = low.getContext("2d")!;
-    const motion = matchMedia("(prefers-reduced-motion: reduce)");
     let width = 0, height = 0, dpr = 1, frame = 0, visible = false, disposed = false, strength = 0, target = 0, mouseX = 0, mouseY = 0;
     const paint = (block: number) => {
       if (block <= 1) ctx.drawImage(source, 0, 0, width, height);
@@ -24,7 +25,7 @@ export default function PixelText({ text, interactive = false, className = "" }:
       frame = 0; if (!visible || document.hidden || !width) return;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, width, height);
       strength += (target - strength) * .18;
-      if (motion.matches) { strength = 0; target = 0; }
+      if (reduced) { strength = 0; target = 0; }
       paint(1); canvas.dataset.label = text;
       if (interactive && strength > .01) {
         ctx.save(); ctx.beginPath(); ctx.arc(mouseX, mouseY, Math.min(70, width / 3), 0, Math.PI * 2); ctx.clip(); ctx.clearRect(0, 0, width, height);
@@ -44,19 +45,19 @@ export default function PixelText({ text, interactive = false, className = "" }:
       c.letterSpacing = style.letterSpacing; c.fillStyle = style.color; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(text, width / 2, height / 2);
       root.dataset.ready = "true"; schedule();
     };
-    const pointer = (event: PointerEvent) => { if (!interactive || event.pointerType !== "mouse" || motion.matches) return; const rect = root.getBoundingClientRect(); mouseX = event.clientX - rect.left; mouseY = event.clientY - rect.top; target = 1; schedule(); };
+    const pointer = (event: PointerEvent) => { if (!interactive || event.pointerType !== "mouse" || reduced) return; const rect = root.getBoundingClientRect(); mouseX = event.clientX - rect.left; mouseY = event.clientY - rect.top; target = 1; schedule(); };
     const leave = () => { target = 0; schedule(); };
     const sync = () => {
       cancelAnimationFrame(frame); frame = 0;
       if (!visible || document.hidden) return;
-      if (motion.matches) { strength = 0; target = 0; }
+      if (reduced) { strength = 0; target = 0; }
       resize(); schedule();
     };
     const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; sync(); }); observer.observe(root);
     const resizeObserver = new ResizeObserver(resize); resizeObserver.observe(root);
-    root.addEventListener("pointermove", pointer); root.addEventListener("pointerleave", leave); document.addEventListener("visibilitychange", sync); motion.addEventListener("change", sync);
+    root.addEventListener("pointermove", pointer); root.addEventListener("pointerleave", leave); document.addEventListener("visibilitychange", sync); 
     document.fonts.ready.then(() => { if (!disposed) resize(); });
-    return () => { disposed = true; cancelAnimationFrame(frame); observer.disconnect(); resizeObserver.disconnect(); root.removeEventListener("pointermove", pointer); root.removeEventListener("pointerleave", leave); document.removeEventListener("visibilitychange", sync); motion.removeEventListener("change", sync); };
-  }, [text, interactive]);
+    return () => { disposed = true; cancelAnimationFrame(frame); observer.disconnect(); resizeObserver.disconnect(); root.removeEventListener("pointermove", pointer); root.removeEventListener("pointerleave", leave); document.removeEventListener("visibilitychange", sync);  };
+  }, [text, interactive, reduced]);
   return <span ref={rootRef} className={`pixel-text ${className}`} role="img" aria-label={text}><span aria-hidden="true">{text}</span><canvas ref={canvasRef} aria-hidden="true"/></span>;
 }

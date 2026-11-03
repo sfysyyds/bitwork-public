@@ -12,7 +12,11 @@ export const downloadProxies = [
 ] as const;
 export const downloadSampleBytes = 128 * 1024;
 export type DownloadRoute = { id: string; name: string; url: string; kind: "direct" | "proxy" };
-export type DownloadMeasurement = DownloadRoute & ({ status: "ok"; bytes: number; ms: number } | { status: "unavailable"; message: string });
+export type DownloadMeasurement = DownloadRoute & (
+  | { status: "ok"; bytes: number; ms: number }
+  | { status: "unmeasurable" | "timeout"; message: string }
+  | { status: "http-error"; statusCode: number; message: string }
+);
 
 export function externalLink(value?: string) {
   try {
@@ -31,8 +35,8 @@ export function downloadRoutes(value: string): DownloadRoute[] {
   return direct ? [{ id: "direct", name: "直接下载", url: direct, kind: "direct" }, ...(asset ? downloadProxies.map(p => ({ id: p.origin, name: p.name, url: p.origin + asset, kind: "proxy" as const })) : [])] : [];
 }
 export function downloadSpeed(result: DownloadMeasurement | undefined) {
-  if (!result) return "测速中…";
-  if (result.status !== "ok") return "无法连接";
+  if (!result) return "尚未测速";
+  if (result.status !== "ok") return result.message;
   const kib = result.bytes * 1000 / result.ms / 1024;
   return kib >= 1024 ? `${(kib / 1024).toFixed(2)} MiB/s` : `${kib.toFixed(1)} KiB/s`;
 }
@@ -45,16 +49,21 @@ export function fastestMeasured(results: DownloadMeasurement[]) {
 async function probe(route: DownloadRoute, signal: AbortSignal, fetcher: typeof fetch): Promise<DownloadMeasurement> {
   const controller = new AbortController(), abort = () => controller.abort();
   signal.addEventListener("abort", abort, { once: true });
-  const timer = setTimeout(abort, 6000), start = performance.now();
+  let timedOut = false;
+  const timer = setTimeout(() => { timedOut = true; abort(); }, 6000), start = performance.now();
   let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
-  const unavailable = (message: string): DownloadMeasurement => ({ ...route, status: "unavailable", message });
+  const unmeasurable = (message: string): DownloadMeasurement => ({ ...route, status: "unmeasurable", message });
   try {
     if (signal.aborted) throw new DOMException("已取消测速", "AbortError");
     const response = await fetcher(route.url, { signal: controller.signal, credentials: "omit", referrerPolicy: "no-referrer", cache: "no-store", headers: { Range: `bytes=0-${downloadSampleBytes - 1}` } });
+    if (response.status >= 400) {
+      await response.body?.cancel();
+      return { ...route, status: "http-error", statusCode: response.status, message: `HTTP ${response.status}：仍可尝试下载` };
+    }
     const range = /^bytes 0-(\d+)\/(\d+)$/.exec(response.headers.get("content-range") || "");
     if (response.status !== 206 || !range || !Number.isSafeInteger(Number(range[1])) || Number(range[1]) >= downloadSampleBytes || !Number.isSafeInteger(Number(range[2])) || Number(range[2]) <= Number(range[1]) || /(?:text\/|html|json)/i.test(response.headers.get("content-type") || "") || !response.body) {
       await response.body?.cancel();
-      return unavailable("不支持分段测速或跨域读取；仍可尝试下载");
+      return unmeasurable(response.status === 200 ? "HTTP 200：服务器未提供可读取的分段响应；仍可尝试下载" : `HTTP ${response.status}：无法测量分段速度；仍可尝试下载`);
     }
     reader = response.body.getReader();
     let bytes = 0;
@@ -62,12 +71,15 @@ async function probe(route: DownloadRoute, signal: AbortSignal, fetcher: typeof 
       const part = await reader.read();
       if (part.done) break;
       bytes += part.value.byteLength;
-      if (bytes > downloadSampleBytes) return unavailable("响应超过样本上限，已停止测速");
+      if (bytes > downloadSampleBytes) return unmeasurable("响应超过样本上限，已停止测速；仍可尝试下载");
     }
-    if (!bytes || bytes !== Number(range[1]) + 1) return unavailable("样本不完整");
+    if (!bytes || bytes !== Number(range[1]) + 1) return unmeasurable("测速样本不完整；仍可尝试下载");
     return { ...route, status: "ok", bytes, ms: Math.max(1, performance.now() - start) };
   } catch {
-    return unavailable(controller.signal.aborted ? "测速超时或已取消" : "跨域受限或线路暂不可用；仍可尝试下载");
+    if (signal.aborted) throw new DOMException("已取消测速", "AbortError");
+    return timedOut
+      ? { ...route, status: "timeout", message: "测速超时；仍可尝试下载" }
+      : unmeasurable("浏览器无法读取线路响应（可能由跨域或网络限制）；仍可尝试下载");
   } finally {
     clearTimeout(timer); signal.removeEventListener("abort", abort);
     await reader?.cancel().catch(() => {}); controller.abort();

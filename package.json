@@ -6,6 +6,8 @@
     "dev": "node scripts/optimize-images.mjs && vite --host 127.0.0.1",
     "snapshot": "node scripts/snapshot-public-resources.mjs",
     "check:snapshot": "node scripts/check-public-snapshot.mjs",
+    "check:regression": "node scripts/check-community-codes.mjs && node scripts/check-community-layout.mjs && node scripts/check-dot-field.mjs . && node scripts/check-report-motion.mjs && node scripts/check-report-routing.mjs && node scripts/check-report-interactions.mjs && node scripts/check-external-image-publish.mjs . --expect-fixed && node scripts/check-gallery-ratio.mjs && node scripts/check-generate-pages.mjs && node scripts/check-image-cache.mjs && node scripts/check-installation-guide.mjs && node scripts/check-mobile-footer.mjs && node scripts/check-public-mosaic.mjs && node scripts/check-public-snapshot.mjs && node scripts/check-public-url-safety.mjs && node scripts/check-resource-downloads.mjs && node scripts/check-snapshot-bounds.mjs && node scripts/check-snapshot-entry.mjs && node scripts/check-snapshot-redirect.mjs . --expect-fixed",
+    "check": "npm run build && npm run check:regression",
     "build": "node scripts/optimize-images.mjs && node scripts/check-image-optimization.mjs && tsc --noEmit && node scripts/check-routes.mjs && node scripts/generate-pages.mjs && vite build && node scripts/verify-dist.mjs && node scripts/check-seo.mjs && node scripts/check-image-loading.mjs . --expect-fixed && node scripts/check-mobile-gallery.mjs",
     "check:publish": "node scripts/preflight.mjs",
     "publish:build": "npm run check:publish && npm run build",

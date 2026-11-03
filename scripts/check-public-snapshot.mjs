@@ -1,12 +1,55 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { pruneGeneratedArtifacts, toPublicResource } from "./snapshot-public-resources.mjs";
+import { fileURLToPath } from "node:url";
+import { fetchPublic, isDirectInvocation, pruneGeneratedArtifacts, readBoundedBytes, toPublicResource, validateCatalog } from "./snapshot-public-resources.mjs";
 
 const marker = "<!-- generated public resource route; keep this file data-free -->";
 const temp = await mkdtemp(path.join(os.tmpdir(), "bitwork-public-snapshot-"));
 try {
+  assert.deepEqual(await readBoundedBytes(new Response(new Uint8Array([1, 2, 3])), 3, "fixture"), Buffer.from([1, 2, 3]));
+  let oversizedCancelled = false, oversizedPulls = 0;
+  const oversized = new Response(new ReadableStream({
+    pull(controller) { oversizedPulls++; controller.enqueue(new Uint8Array(1024)); },
+    cancel() { oversizedCancelled = true; },
+  }));
+  await assert.rejects(readBoundedBytes(oversized, 100, "fixture"), /exceeds 100 byte limit/);
+  assert.equal(oversizedCancelled, true);
+  assert.equal(oversizedPulls, 1, "Bounded reader must stop at the first over-limit chunk.");
+
+  const catalog = { publicRevision: "a".repeat(64), items: [{ id: "a", screenshots: [] }] };
+  assert.equal(validateCatalog(catalog), catalog);
+  assert.throws(() => validateCatalog({ ...catalog, items: Array.from({ length: 501 }, () => ({})) }), /exceeds 500 resource limit/);
+  assert.throws(() => validateCatalog({ ...catalog, items: [{ screenshots: Array(101).fill({}) }] }), /exceeds 100 screenshots/);
+  assert.throws(() => validateCatalog({ ...catalog, items: [{ description: "x".repeat(100_001) }] }), /field description exceeds 100000 characters/);
+  assert.throws(() => validateCatalog({ ...catalog, items: [{ screenshots: [{ caption: "x".repeat(2_001) }] }] }), /caption exceeds 2000 characters/);
+
+  const snapshotScript = fileURLToPath(new URL("./snapshot-public-resources.mjs", import.meta.url));
+  assert.equal(await isDirectInvocation(snapshotScript, snapshotScript), true);
+  assert.equal(await isDirectInvocation(undefined, snapshotScript), false);
+  let symlinkCheck = "passed";
+  try {
+    const alias = path.join(temp, "snapshot-alias.mjs");
+    await symlink(snapshotScript, alias);
+    assert.equal(await isDirectInvocation(alias, snapshotScript), true);
+  } catch (error) {
+    if (!["EPERM", "EACCES", "ENOSYS"].includes(error.code)) throw error;
+    symlinkCheck = `skipped:${error.code}`;
+  }
+
+  const nativeFetch = globalThis.fetch;
+  globalThis.fetch = async (_url, { signal }) => new Promise((_, reject) => {
+    const keepAlive = setTimeout(() => {}, 100);
+    const abort = () => { clearTimeout(keepAlive); reject(signal.reason); };
+    if (signal.aborted) abort(); else signal.addEventListener("abort", abort, { once: true });
+  });
+  try {
+    await assert.rejects(fetchPublic("https://timeout.example/", 5), error => error.name === "TimeoutError");
+  } finally {
+    globalThis.fetch = nativeFetch;
+  }
+
   const resources = path.join(temp, "resources");
   const media = path.join(temp, "public", "media");
   const staleRoute = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -66,6 +109,7 @@ try {
   await assert.rejects(pruneGeneratedArtifacts(unsafe, new Set(), new Set()), /unrecognized stale route/);
   assert.equal(await readdir(path.join(unsafe, "resources", oldRoute)).then(items => items.length), 1);
 
+  console.log(JSON.stringify({ snapshotBounds: "PASS", overLimitStreamCancelled: oversizedCancelled, streamedChunksRead: oversizedPulls, catalogLimits: true, timeout: true, realpathEntry: true, symlinkEntry: symlinkCheck }));
   console.log("Public snapshot checks passed: stale generated routes/media removed; current/custom assets preserved; private fields excluded; unsafe stale route blocks publish.");
 } finally {
   await rm(temp, { recursive: true, force: true });

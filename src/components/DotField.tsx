@@ -1,15 +1,16 @@
+import { useReducedEffects } from "../motion-preference";
 import {useEffect,useRef} from "react";
 import {createField,sampleField} from "../dot-field";
 
 export default function DotField(){
+ const { reduced } = useReducedEffects();
  const ref=useRef<HTMLCanvasElement>(null);
  useEffect(()=>{
   const canvas=ref.current!,ctx=canvas.getContext("2d");if(!ctx)return;
-  const motion=matchMedia("(prefers-reduced-motion: reduce)");
   const seed=Math.random();
   let width=0,height=0,field=createField(1,1,()=>seed),frame=0,last=0,time=0;
   let targetX=0,targetY=0,px=0,py=0,influence=0,inside=false;
-  const animated=()=>!motion.matches;
+  const animated=()=>!reduced;
   const paint=()=>{
    const scale=field.scale;ctx.clearRect(0,0,width,height);
    for(let y=1;y<field.rows-1;y++)for(let x=1;x<field.columns-1;x++){
@@ -34,14 +35,14 @@ export default function DotField(){
   const resize=()=>{
    width=window.innerWidth;height=window.innerHeight;field=createField(width,height,()=>seed);
    const dpr=Math.min(devicePixelRatio||1,1.5,Math.sqrt(5000000/(width*height)));canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);
-   ctx.setTransform(dpr,0,0,dpr,0,0);paint();start();
+   ctx.setTransform(dpr,0,0,dpr,0,0);paint();if(animated())start();
   };
   const pointer=(event:PointerEvent)=>{if(!animated())return;if(!inside&&influence<.01){px=event.clientX;py=event.clientY;}targetX=event.clientX;targetY=event.clientY;inside=true;};
   const leave=()=>{inside=false;};
   const release=(event:PointerEvent)=>{if(event.pointerType!=="mouse")leave();};
   window.addEventListener("pointerdown",pointer,{passive:true});window.addEventListener("pointermove",pointer,{passive:true});window.addEventListener("pointerup",release,{passive:true});window.addEventListener("pointercancel",leave,{passive:true});document.addEventListener("pointerleave",leave);window.addEventListener("blur",leave);window.addEventListener("resize",resize);
-  document.addEventListener("visibilitychange",start);motion.addEventListener("change",start);resize();
-  return()=>{cancelAnimationFrame(frame);window.removeEventListener("pointerdown",pointer);window.removeEventListener("pointermove",pointer);window.removeEventListener("pointerup",release);window.removeEventListener("pointercancel",leave);document.removeEventListener("pointerleave",leave);window.removeEventListener("blur",leave);window.removeEventListener("resize",resize);document.removeEventListener("visibilitychange",start);motion.removeEventListener("change",start);};
- },[]);
+  document.addEventListener("visibilitychange",start);resize();
+  return()=>{cancelAnimationFrame(frame);window.removeEventListener("pointerdown",pointer);window.removeEventListener("pointermove",pointer);window.removeEventListener("pointerup",release);window.removeEventListener("pointercancel",leave);document.removeEventListener("pointerleave",leave);window.removeEventListener("blur",leave);window.removeEventListener("resize",resize);document.removeEventListener("visibilitychange",start);};
+ },[reduced]);
  return <canvas ref={ref} className="dot-field" aria-hidden="true"/>;
 }
