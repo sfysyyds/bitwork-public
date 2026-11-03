@@ -42,12 +42,29 @@ jobs:
           VITE_WORKBENCH_HOST: https://work.bitwork.top
           PAGES_BASE_PATH: /
         run: npm run publish:build
+      - name: Snapshot current versioned browser assets
+        run: node scripts/preserve-versioned-assets.mjs snapshot dist/assets current-versioned-assets
+      - name: Restore previous deployed browser assets
+        uses: actions/cache/restore@v4
+        with:
+          path: .cache/public-assets/archive
+          key: bitwork-public-assets-v1-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            bitwork-public-assets-v1-${{ github.ref_name }}-
+      - name: Keep the previous browser asset generation
+        run: node scripts/preserve-versioned-assets.mjs merge dist/assets .cache/public-assets/archive
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
           path: dist
+      - name: Upload current asset snapshot for post-deploy cache update
+        uses: actions/upload-artifact@v4
+        with:
+          name: current-versioned-assets
+          path: current-versioned-assets
+          retention-days: 1
 
   deploy:
     environment:
@@ -56,6 +73,16 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
+      - name: Download current asset snapshot
+        uses: actions/download-artifact@v4
+        with:
+          name: current-versioned-assets
+          path: .cache/public-assets/archive
       - name: Deploy public site
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Save successfully deployed assets for the next publication
+        uses: actions/cache/save@v4
+        with:
+          path: .cache/public-assets/archive
+          key: bitwork-public-assets-v1-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}

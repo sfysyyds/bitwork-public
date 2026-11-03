@@ -22,5 +22,4 @@
 }
 
 
-.landing-community{display:grid;gap:10px;justify-items:end}.motion-toggle{padding:3px 7px;border:1px solid #333;background:#090909;border-radius:4px;font-size:12px;color:#aaa;letter-spacing:0;min-height:32px}.motion-toggle:disabled{cursor:default}
-html[data-effects="off"]::view-transition-group(*),html[data-effects="off"]::view-transition-old(*),html[data-effects="off"]::view-transition-new(*){animation:none!important;filter:none!important}
+.landing-community{display:grid;gap:10px;justify-items:end}

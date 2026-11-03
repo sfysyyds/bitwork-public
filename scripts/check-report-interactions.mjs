@@ -76,13 +76,13 @@ if (baseline) {
   assert(articleSource.includes("打开原图（新标签页）") && articleSource.includes("aria-live=\"polite\""));
   assert(articleSource.includes("imageRequest.current === currentImageRequest") && articleSource.includes("galleryTrigger.current?.focus()"));
   assert(articleSource.includes("页面目录（窄屏可横向滚动）"));
-  assert(css.includes("font-size:11px;margin-bottom:4px") && css.includes(".resource-facts dt{font-size:11px;}.resource-facts dd{font-size:12px;}"));
-  assert(css.includes(".resources-card-meta{font-size:11px;}"));
+  assert(css.includes("font-size:0.75rem;margin-bottom:4px") && css.includes(".resource-facts dt{font-size:0.75rem;}.resource-facts dd{font-size:0.75rem;}"));
+  assert(css.includes(".resources-card-meta{font-size:0.75rem;}"));
   assert(css.includes("scrollbar-width:thin;") && !css.includes(".resource-toc::-webkit-scrollbar{display:none;}"));
   assert(imageHelper.includes("function showImageFallback") && imageHelper.includes("image.dataset.failed = \"true\""));
   assert(imageHelper.includes("image.removeAttribute(\"srcset\")") && imageHelper.includes("image.src = failedImage"));
   assert(css.includes(".resources-card-cover{position:relative;display:grid;place-items:center;overflow:hidden;background:#151519;}") && css.includes('.resource-cover-pixels[data-failed="true"]{display:none;}'));
-  assert(css.includes('html[data-effects="off"] .resource-cover-pixels{display:none;}'));
+  assert(!css.includes('html[data-effects="off"] .resource-cover-pixels'),"manual static preference must not hide cover mosaics");
   cases += 13;
 }
 

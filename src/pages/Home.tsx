@@ -1,4 +1,3 @@
-import { setEffectsEnabled, useReducedEffects } from "../motion-preference";
 import { BookOpen, LogIn } from "lucide-react";
 import { Brand } from "../components/Brand";
 import BitScene from "../components/BitScene";
@@ -12,7 +11,6 @@ const updatedAt = __SITE_UPDATED_AT__;
 const updatedLabel = new Intl.DateTimeFormat("zh-CN", { timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(updatedAt));
 
 export default function Home() {
-  const { reduced, systemReduced } = useReducedEffects();
   const login = workbenchUrl("/login");
   return <main className="landing">
     <h1 className="sr-only">新位元汉化组 THE NEW BIT</h1>
@@ -27,6 +25,6 @@ export default function Home() {
         <a className="button primary" href={login || undefined} aria-disabled={!login}><LogIn size={19} />账号登录</a>
       </div>
     </section>
-    <footer className="landing-footer"><div className="landing-release"><span>更新时间</span><time dateTime={updatedAt}>{updatedLabel}</time></div><div className="landing-community"><button type="button" className="motion-toggle" aria-pressed={!reduced} disabled={systemReduced} onClick={() => setEffectsEnabled(reduced)}>{systemReduced ? "动态效果：遵循系统关闭" : `动态效果：${reduced ? "关" : "开"}`}</button><CommunityCodes/></div></footer>
+    <footer className="landing-footer"><div className="landing-release"><span>更新时间</span><time dateTime={updatedAt}>{updatedLabel}</time></div><div className="landing-community"><CommunityCodes/></div></footer>
   </main>;
 }
