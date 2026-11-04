@@ -101,7 +101,7 @@ export default function ResourceArticle({ resource }: { resource: ResourceItem }
         <h1>{resource.title}</h1>
         <p className="resource-original-title">{resource.english ? `${resource.english} 汉化补丁 · ` : ""}新位元汉化组</p>
         {resource.version?.trim() && <dl className="resource-facts"><div><dt>版本</dt><dd>{resource.version.trim()}</dd></div></dl>}
-        <ResourceActions downloadUrl={resource.downloadUrl} gameUrl={resource.gameUrl} articleUrl={resource.articleUrl}/>
+        <ResourceActions downloadUrl={resource.downloadUrl} downloadSha256={resource.downloadSha256} gameUrl={resource.gameUrl} articleUrl={resource.articleUrl}/>
       </div>
     </header>
 

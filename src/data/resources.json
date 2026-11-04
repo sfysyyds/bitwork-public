@@ -1,4 +1,130 @@
 {
-  "snapshotAt": "2026-10-15T10:47:27.823Z",
-  "items": []
+  "snapshotAt": "2026-11-04T01:54:51.564Z",
+  "items": [
+    {
+      "id": "98f85673-02b5-48ad-b5de-7d081fb2831d",
+      "title": "回音镇",
+      "english": "Echo",
+      "genre": "恐怖/怪诞",
+      "version": "V1.01",
+      "intro": "永远的循环...",
+      "downloadUrl": "https://github.com/sfysyyds/bitwork-public/releases/download/Echo-v1.1/Echo.V1-1.zip",
+      "downloadSha256": "1d05161a884d56d1f6f70e9c0204af6f0b2287edf8cd89e285d33f555549813d",
+      "gameUrl": "https://echoproject.itch.io/echo",
+      "articleUrl": "https://www.bilibili.com/opus/1257802321102897154",
+      "coverUrl": "/media/98f85673-02b5-48ad-b5de-7d081fb2831d-cover-862dd6252210a34a.png",
+      "screenshots": [
+        {
+          "url": "/media/98f85673-02b5-48ad-b5de-7d081fb2831d-shot-1-b3755711d32a167b.png",
+          "caption": "游戏CG"
+        },
+        {
+          "url": "/media/98f85673-02b5-48ad-b5de-7d081fb2831d-shot-2-7907b94ad64cbb28.png",
+          "caption": "游戏CG"
+        },
+        {
+          "url": "/media/98f85673-02b5-48ad-b5de-7d081fb2831d-shot-3-aae6d9d577887ca9.png",
+          "caption": "游戏CG"
+        }
+      ],
+      "description": "故事围绕 Chase Hunter 展开，为了完成一项关于小镇历史的学校课题，回到了故乡回音镇。他的五位童年好友也借此机会与他同行，迎来了一场重聚。\n\n然而，一切已不再如初，时间与际遇在老朋友之间划下了隔阂。\n\n事态很快失控，随着过往的悲剧阴影重现，不断加剧的紧张局势与令人不安的怪事一直困扰着这场重聚。在内心煎熬与外部力量的双重折磨下，Chase 和他的朋友们被迫直面小镇深藏的秘密，以及他们共同经历与各自背负的过去。",
+      "installation": "将 \"game\" 文件夹，拖入与游戏执行文件同级目录，覆盖原 \"game\" 文件夹。",
+      "changelog": "V1.1\n紧急修复字体问题\nV1.0\n正式发布",
+      "credits": ""
+    },
+    {
+      "id": "ba2d4574-c048-4207-a238-bd242a64b91d",
+      "title": "兽穴",
+      "english": "Burrows",
+      "genre": "恐怖/血腥/色情",
+      "version": "V0.18.1",
+      "intro": "一次救赎的机会...",
+      "downloadUrl": "https://github.com/sfysyyds/bitwork-public/releases/download/Burrows/burrows.V0-1-1.zip",
+      "downloadSha256": "f86e6ba58f67215f09bc0ffac144acd81fefb943b1befc6c09c388933d1799e4",
+      "gameUrl": "https://nikkonator5000.itch.io/burrows",
+      "articleUrl": "https://www.bilibili.com/opus/1218877633802010625",
+      "coverUrl": "/media/ba2d4574-c048-4207-a238-bd242a64b91d-cover-027ef7e2b4c6fd6a.png",
+      "screenshots": [
+        {
+          "url": "/media/ba2d4574-c048-4207-a238-bd242a64b91d-shot-1-792cbe8f12182e48.png",
+          "caption": "游戏CG"
+        },
+        {
+          "url": "/media/ba2d4574-c048-4207-a238-bd242a64b91d-shot-2-970134b04c3edabe.png",
+          "caption": "游戏CG"
+        },
+        {
+          "url": "/media/ba2d4574-c048-4207-a238-bd242a64b91d-shot-3-cb40c733a3fc9855.png",
+          "caption": "游戏CG"
+        },
+        {
+          "url": "/media/ba2d4574-c048-4207-a238-bd242a64b91d-shot-4-b26db7024f7dac9d.png",
+          "caption": "游戏CG"
+        },
+        {
+          "url": "/media/ba2d4574-c048-4207-a238-bd242a64b91d-shot-5-773e9204756106f5.png",
+          "caption": "游戏CG"
+        },
+        {
+          "url": "/media/ba2d4574-c048-4207-a238-bd242a64b91d-shot-6-bf08079d63274fff.png",
+          "caption": "游戏CG"
+        },
+        {
+          "url": "/media/ba2d4574-c048-4207-a238-bd242a64b91d-shot-7-fd55916a9339e1c3.png",
+          "caption": "游戏CG"
+        },
+        {
+          "url": "/media/ba2d4574-c048-4207-a238-bd242a64b91d-shot-8-6481e75e99b1c1a8.png",
+          "caption": "游戏CG"
+        }
+      ],
+      "description": "20世纪20年代，厌倦了过往生活的负鼠 Grey 离开了新奥尔良，试图以死亡寻求解脱。然而，神秘的酒保 Virgil 却将他拖入了一场永无止境的噩梦。\n\n迷失在翻涌不息的灵魂之海中，Grey 内心的祈求终于得到了回应。他获得了重活一次的机会，也遇见了四位素不相识的男人。而他们似乎都与 Grey 曾经的居所—— 一座埋藏着黑暗往事的种植园—— 有着某种联系。\n\n然而，众人才刚刚相识，那四人便突然被带走。Grey 别无选择，只能——\n\n**再往深处挖一挖。**",
+      "installation": "解压密码 burrows\n将 \"game\" 文件夹，拖入与游戏执行文件同级目录，覆盖原 \"game\" 文件夹。",
+      "changelog": "V0.1.1-hotfix\n适配包含紧急更新修复的正式版0.18.1\nV0.1.1\n适配 0.18.1 赞助版本\n更新 Hiro 路线新剧情\n修正一些翻译\nV0.1\n首次发发布",
+      "credits": ""
+    },
+    {
+      "id": "49ebb60c-51c4-455e-b858-4f74d99ae562",
+      "title": "山火",
+      "english": "Fire On The Mountain",
+      "genre": "黑色幽默/恐怖",
+      "version": "V0.1",
+      "intro": "请各位游客不要靠近黑喉峰...",
+      "downloadUrl": "https://github.com/sfysyyds/bitwork-public/releases/download/FireOnTheMountain/FireOnTheMountain.V-0-1.zip",
+      "downloadSha256": "f996ac32871b1d3d34c384dc42d5451df8f71024cc313d8b39bdd29299635e58",
+      "gameUrl": "https://nikkonator5000.itch.io/fire-on-the-mountain",
+      "articleUrl": "https://www.bilibili.com/opus/1232630758996181049",
+      "coverUrl": "/media/49ebb60c-51c4-455e-b858-4f74d99ae562-cover-4e3ac89af462d4b1.png",
+      "screenshots": [
+        {
+          "url": "/media/49ebb60c-51c4-455e-b858-4f74d99ae562-shot-1-617cdb4e49de3171.png",
+          "caption": "游戏CG"
+        },
+        {
+          "url": "/media/49ebb60c-51c4-455e-b858-4f74d99ae562-shot-2-c688104e236189d5.png",
+          "caption": "游戏CG"
+        },
+        {
+          "url": "/media/49ebb60c-51c4-455e-b858-4f74d99ae562-shot-3-921626c8fa7174de.png",
+          "caption": "游戏CG"
+        },
+        {
+          "url": "/media/49ebb60c-51c4-455e-b858-4f74d99ae562-shot-4-18299bfe91c07f07.png",
+          "caption": "游戏CG"
+        },
+        {
+          "url": "/media/49ebb60c-51c4-455e-b858-4f74d99ae562-shot-5-f8fc7a513395d19c.png",
+          "caption": "游戏CG"
+        },
+        {
+          "url": "/media/49ebb60c-51c4-455e-b858-4f74d99ae562-shot-6-7e03cc3f57a445f4.png",
+          "caption": "游戏CG"
+        }
+      ],
+      "description": "“听着，老子他妈根本就不想干这傻逼工作，钱又没钱，b 事特多，工作人员跟他妈棍木一样？！\n\n……\n\n什么？你说这是要拿来做宣传的？\n\n行，我重来。\n\n大家好！我是 Ripley, 七号营地的总负责人。这里可是雷斯特福尔国家公园里，呃... 最*与众不同*的地方！\n\n放眼望去，尽是美不胜收的自然风光，还能顺带享受被公园巡护员彻底无视的独特体验！除了这里，你还能上哪找到这种好地方？\n\n或者，你也可以在我们众多湖泊中挑一个，痛痛快快地游上一场！（当然，前提是那些食肉菌正好在休眠。）\n\n哦，对了。\n\n千万别靠近黑喉峰。\n\n那里被列为禁区，可不是没有原因的。”",
+      "installation": "将 \"game\" 文件夹，拖入与游戏执行文件同级目录，覆盖原 \"game\" 文件夹。",
+      "changelog": "V0.1\n正式发布",
+      "credits": ""
+    }
+  ]
 }

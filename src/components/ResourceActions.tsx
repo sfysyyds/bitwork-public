@@ -3,7 +3,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { ArrowDownToLine, ArrowUpRight, ChevronDown, ExternalLink, FileText, X } from "lucide-react";
 import { currentMeasurements, downloadRoutes, downloadSpeed, externalLink, githubAsset, measureDownloads, type DownloadMeasurement } from "../resource-downloads";
 
-export default function ResourceActions({ downloadUrl, gameUrl, articleUrl }: { downloadUrl: string; gameUrl?: string; articleUrl?: string }) {
+export default function ResourceActions({ downloadUrl, downloadSha256, gameUrl, articleUrl }: { downloadUrl: string; downloadSha256?: string; gameUrl?: string; articleUrl?: string }) {
   const direct = externalLink(downloadUrl), game = externalLink(gameUrl), article = externalLink(articleUrl);
   const dialog = useRef<HTMLDialogElement>(null), titleId = useId(), pending = useRef<AbortController | null>(null);
   const [results, setResults] = useState<DownloadMeasurement[]>([]);
@@ -61,6 +61,7 @@ export default function ResourceActions({ downloadUrl, gameUrl, articleUrl }: { 
           <span className="patch-route-speed" aria-live="polite">{downloadSpeed(result)}</span>
         </a>;
       })}</div>
+      {/^[a-f0-9]{64}$/i.test(downloadSha256||"") && <details className="patch-download-checksum"><summary>校验补丁完整性</summary><p>SHA-256（GitHub发布平台记录）</p><code>{downloadSha256}</code><p>直连和代理下载的文件均应匹配此值；哈希校验不等同数字签名。</p></details>}
       {githubAsset(direct) && <small className="patch-download-note">代理为第三方服务，域名已在各线路中标出。</small>}
     </dialog>
   </div>;

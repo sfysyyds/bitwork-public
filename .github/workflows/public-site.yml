@@ -33,9 +33,17 @@ jobs:
         run: npm ci
       - name: Check public snapshot safeguards
         run: npm run check:snapshot
+      - name: Restore validated media transformation cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/public-media
+          key: bitwork-media-v1-${{ hashFiles('scripts/snapshot-public-resources.mjs', 'scripts/optimize-images.mjs', 'package-lock.json') }}-${{ github.run_id }}
+          restore-keys: |
+            bitwork-media-v1-${{ hashFiles('scripts/snapshot-public-resources.mjs', 'scripts/optimize-images.mjs', 'package-lock.json') }}-
       - name: Fetch approved catalog and prepare publication marker
         env:
           PUBLISH_ID: ${{ inputs.publish_id || github.sha }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: npm run snapshot
       - name: Build and verify static site
         env:

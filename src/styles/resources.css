@@ -155,3 +155,7 @@
 .resource-lightbox-toolbar>span{min-width:0;overflow-wrap:anywhere;}
 .resource-lightbox-nav button{flex:1 1 0;min-width:0;flex-wrap:wrap;}
 @media(max-width:640px){.resources-header{min-height:62px;}}
+
+.patch-download-checksum { margin-top: 12px; font-size: .8rem; color: #a1a1aa; }
+.patch-download-checksum summary { cursor: pointer; }
+.patch-download-checksum code { display: block; overflow-wrap: anywhere; user-select: all; color: #e4e4e7; }

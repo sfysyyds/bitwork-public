@@ -76,9 +76,10 @@ try {
   assert.equal(await readFile(path.join(collisionAssets, "shared-deadbeef.js"), "utf8"), "new-current-bytes");
   assert.deepEqual(await names(collisionAssets), ["shared-deadbeef.js"], "old images, HTML, and business directories are not restored");
 
-  const workflow = await readFile(path.join(root, ".github/workflows/public-site.yml"), "utf8");
-  const restorePath = workflow.match(/uses: actions\/cache\/restore@v4\n\s+with:\n\s+path: ([^\n]+)/)?.[1].trim();
-  const savePath = workflow.match(/uses: actions\/cache\/save@v4\n\s+with:\n\s+path: ([^\n]+)/)?.[1].trim();
+  const workflow = (await readFile(path.join(root, ".github/workflows/public-site.yml"), "utf8")).replace(/\r\n/g, "\n");
+  const assetWorkflow = workflow.slice(workflow.indexOf("      - name: Restore previous deployed browser assets"));
+  const restorePath = assetWorkflow.match(/uses: actions\/cache\/restore@v4\n\s+with:\n\s+path: ([^\n]+)/)?.[1].trim();
+  const savePath = assetWorkflow.match(/uses: actions\/cache\/save@v4\n\s+with:\n\s+path: ([^\n]+)/)?.[1].trim();
   const snapshotPath = workflow.match(/run: node scripts\/preserve-versioned-assets\.mjs snapshot dist\/assets ([^\n]+)/)?.[1].trim();
   const uploadPath = workflow.match(/name: current-versioned-assets\n\s+path: ([^\n]+)/)?.[1].trim();
   const downloadPath = workflow.match(/uses: actions\/download-artifact@v4\n\s+with:\n\s+name: current-versioned-assets\n\s+path: ([^\n]+)/)?.[1].trim();
