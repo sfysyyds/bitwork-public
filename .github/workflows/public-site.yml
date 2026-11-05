@@ -50,6 +50,8 @@ jobs:
           VITE_WORKBENCH_HOST: https://work.bitwork.top
           PAGES_BASE_PATH: /
         run: npm run publish:build
+      - name: Run full public regression gate
+        run: npm run check:regression
       - name: Snapshot current versioned browser assets
         run: node scripts/preserve-versioned-assets.mjs snapshot dist/assets current-versioned-assets
       - name: Restore previous deployed browser assets
