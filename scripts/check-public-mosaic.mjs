@@ -9,8 +9,8 @@ const subtitle=enabled?'团队齐心合力之作':'团本齐心合力之作';
 assert.ok(read('src/pages/Resources.tsx').includes('<p>'+subtitle+'</p>'));
 if(enabled){
  const css=read('src/styles/mosaic.css');
- assert.ok(read('vite.config.ts').includes('@view-transition { navigation: auto; }'));
- assert.ok(read('vite.config.ts').includes('injectTo: "head-prepend"'));
+  assert.ok(css.includes('@view-transition { navigation: auto; }'));
+  assert.ok(!read('vite.config.ts').includes('injectTo: "head-prepend"'));
  assert.ok(css.includes('filter: url(#browser-mosaic)'));
  assert.ok(css.includes('mix-blend-mode: normal'));
  assert.ok(css.includes('prefers-reduced-motion: reduce'));

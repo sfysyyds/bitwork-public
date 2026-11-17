@@ -1,0 +1,20 @@
+{
+  "ref": "bitwork_top_security_response_headers",
+  "description": "Candidate security headers for the HTTPS apex host only; not deployed.",
+  "expression": "(http.host eq \"bitwork.top\" and ssl)",
+  "action": "rewrite",
+  "action_parameters": {
+    "headers": {
+      "Content-Security-Policy": {
+        "operation": "set",
+        "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://ghproxy.net https://ghfast.top https://gh-proxy.com https://ghproxy.imciel.com https://gh.acmsz.top https://gh.monlor.com; upgrade-insecure-requests"
+      },
+      "X-Content-Type-Options": { "operation": "set", "value": "nosniff" },
+      "X-Frame-Options": { "operation": "set", "value": "DENY" },
+      "Referrer-Policy": { "operation": "set", "value": "strict-origin-when-cross-origin" },
+      "Permissions-Policy": { "operation": "set", "value": "camera=(), geolocation=(), microphone=(), payment=()" },
+      "Strict-Transport-Security": { "operation": "set", "value": "max-age=31536000" }
+    }
+  },
+  "enabled": true
+}

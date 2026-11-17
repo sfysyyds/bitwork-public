@@ -16,7 +16,7 @@ if (!base.startsWith("/") || !base.endsWith("/")) throw new Error("PAGES_BASE_PA
 export default defineConfig({
   base,
   cacheDir: resolve(root, ".vite-cache"),
-  plugins: [react(), seoPages({ root, base, updatedAt }), { name: "mosaic-navigation", transformIndexHtml: () => [{ tag: "style", children: "@view-transition { navigation: auto; }", injectTo: "head-prepend" }] }],
+  plugins: [react(), seoPages({ root, base, updatedAt })],
   build: {
     outDir: resolve(root, "dist"),
     cssCodeSplit: false, // Keep prerendered pages styled even without JavaScript.
