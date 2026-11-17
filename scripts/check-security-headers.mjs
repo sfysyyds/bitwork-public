@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { applyResponseHeaderRule, responseHeaderRule } from "./security-header-rule-adapter.mjs";
 
 const requestContext = { host: "bitwork.top", ssl: true };
@@ -26,6 +27,12 @@ assert.equal(response.headers.get("Referrer-Policy"), "strict-origin-when-cross-
 assert.equal(response.headers.get("X-Origin"), "pages");
 assert.equal(response.headers.get("Cache-Control"), "public, max-age=3600");
 assert.equal(await response.text(), "upstream");
+
+const static404 = await readFile(new URL("../public/404.html", import.meta.url), "utf8");
+assert.match(static404, /<h1\b[^>]*>\s*404\s*<\/h1>/i);
+assert.doesNotMatch(static404, /<script\b|<style\b|\bstyle\s*=/i);
+assert.match(static404, /<a\b[^>]*href=["']\/["'][^>]*>/i);
+assert.match(static404, /<a\b[^>]*href=["']\/resources\/["'][^>]*>/i);
 
 for (const context of [
   { host: "www.bitwork.top", ssl: true },
