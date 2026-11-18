@@ -2,8 +2,9 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { ArrowDownToLine, ArrowUpRight, ChevronDown, ExternalLink, FileText, X } from "lucide-react";
 import { currentMeasurements, downloadRoutes, downloadSpeed, externalLink, githubAsset, measureDownloads, type DownloadMeasurement } from "../resource-downloads";
+import { trackPublicDownload } from "../site-analytics";
 
-export default function ResourceActions({ downloadUrl, downloadSha256, gameUrl, articleUrl }: { downloadUrl: string; downloadSha256?: string; gameUrl?: string; articleUrl?: string }) {
+export default function ResourceActions({ resourceId, downloadUrl, downloadSha256, gameUrl, articleUrl }: { resourceId?: string; downloadUrl: string; downloadSha256?: string; gameUrl?: string; articleUrl?: string }) {
   const direct = externalLink(downloadUrl), game = externalLink(gameUrl), article = externalLink(articleUrl);
   const dialog = useRef<HTMLDialogElement>(null), titleId = useId(), pending = useRef<AbortController | null>(null);
   const [results, setResults] = useState<DownloadMeasurement[]>([]);
@@ -47,7 +48,7 @@ export default function ResourceActions({ downloadUrl, downloadSha256, gameUrl, 
   return <div className="resource-actions">
     <div className="resource-action-buttons">
       {direct ? <a className="resource-download" href={direct} title="选择补丁下载线路" aria-haspopup="dialog" onClick={event => { event.preventDefault(); void open(); }}><ArrowDownToLine size={17}/>补丁下载<ChevronDown size={15}/></a> : <button type="button" className="resource-download" disabled title="尚未填写补丁下载地址" aria-haspopup="dialog"><ArrowDownToLine size={17}/>补丁下载<ChevronDown size={15}/></button>}
-      {game ? <a className="resource-download resource-action-secondary" href={game} target="_blank" rel="noopener noreferrer"><ExternalLink size={17}/>游戏下载<ArrowUpRight size={14}/></a> : <button className="resource-download resource-action-secondary" disabled title="尚未填写游戏网站地址"><ExternalLink size={17}/>游戏下载</button>}
+      {game ? <a className="resource-download resource-action-secondary" href={game} target="_blank" rel="noopener noreferrer" onClick={() => { if (resourceId) trackPublicDownload("game_download", resourceId); }}><ExternalLink size={17}/>游戏下载<ArrowUpRight size={14}/></a> : <button className="resource-download resource-action-secondary" disabled title="尚未填写游戏网站地址"><ExternalLink size={17}/>游戏下载</button>}
       {article ? <a className="resource-download resource-action-secondary" href={article} target="_blank" rel="noopener noreferrer"><FileText size={17}/>查看文章<ArrowUpRight size={14}/></a> : <button className="resource-download resource-action-secondary" disabled title="尚未填写文章地址"><FileText size={17}/>查看文章</button>}
     </div>
     <dialog className="patch-download-dialog" ref={dialog} aria-labelledby={titleId} onClose={stop} onClick={e => { if (e.target === dialog.current) close(); }}>
@@ -56,7 +57,7 @@ export default function ResourceActions({ downloadUrl, downloadSha256, gameUrl, 
       <button className="patch-speedtest" type="button" onClick={() => void testRoutes()} disabled={measuring}>{measuring ? "测速中…" : lastMeasuredAt.current && Date.now() - lastMeasuredAt.current < 30_000 ? "测速结果已缓存" : "测速线路"}</button>
       <div className="patch-download-routes">{routes.map(route => {
         const result = currentResults.find(r => r.id === route.id && r.url === route.url);
-        return <a className="patch-download-route" key={route.id} href={route.url} rel="noreferrer" onClick={close}>
+        return <a className="patch-download-route" key={route.id} href={route.url} rel="noreferrer" onClick={() => { if (resourceId) trackPublicDownload("patch_download", resourceId, route.kind); close(); }}>
           <span className="patch-route-label"><strong title={route.name}>{route.name}</strong><small>{new URL(route.url).hostname}</small></span>
           <span className="patch-route-speed" aria-live="polite">{downloadSpeed(result)}</span>
         </a>;

@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { BookOpen, LogIn } from "lucide-react";
 import { Brand } from "../components/Brand";
 import BitScene from "../components/BitScene";
 import PixelText from "../components/PixelText";
 import { sitePath, workbenchUrl } from "../site-path";
+import { trackPublicView } from "../site-analytics";
 import CommunityCodes from "../components/CommunityCodes";
 import "../styles/homepage.css";
 import "../styles/community-codes.css";
@@ -12,6 +14,7 @@ const updatedLabel = new Intl.DateTimeFormat("zh-CN", { timeZone: "Asia/Shanghai
 
 export default function Home() {
   const login = workbenchUrl("/login");
+  useEffect(() => trackPublicView("home"), []);
   return <main className="landing">
     <h1 className="sr-only">新位元汉化组 THE NEW BIT</h1>
     <header className="landing-header"><Brand /></header>

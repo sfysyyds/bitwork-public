@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import { BookOpen } from "lucide-react";
 import { Brand } from "../components/Brand";
 import ResourceArticle, { CoverPixels, resourceCoverStyle, resourceMediaUrl } from "../components/ResourceArticle";
 import { sitePath } from "../site-path";
+import { trackPublicView } from "../site-analytics";
 import type { ResourceItem } from "../types";
 import snapshot from "../data/resources.json";
 import { resourceImageProps } from "../resource-images";
@@ -13,6 +15,7 @@ export default function Resources({ id }: { id?: string }) {
   const isDetail = id !== undefined;
   const activeResource = id ? items.find(item => item.id === id) ?? null : null;
   const base = sitePath();
+  useEffect(() => (!isDetail ? trackPublicView("catalog") : undefined), [isDetail]);
   return <main className="resources-page">
     <header className="resources-header"><Brand/><a href={isDetail ? sitePath("resources/") : sitePath()} className="resources-home">←{isDetail ? "作品目录" : "首页"}</a></header>
     {isDetail ? activeResource ? <ResourceArticle resource={activeResource}/> : <div className="resources-state"><h1>未找到这项资源</h1><p>作品不存在，或尚未公开发布。</p><a href={sitePath("resources/")} className="resources-home">←返回资源目录</a></div> : <>

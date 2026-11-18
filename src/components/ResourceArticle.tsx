@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { ChevronLeft, ChevronRight, Images, X } from "lucide-react";
 import ResourceActions from "./ResourceActions";
+import { trackPublicView } from "../site-analytics";
 import type { ResourceItem } from "../types";
 import { sitePath } from "../site-path";
 import { fullImageSrc, resourceImageProps } from "../resource-images";
@@ -43,6 +44,7 @@ function Section({ id, title, children, installationGuide = false }: { id: strin
 
 export default function ResourceArticle({ resource }: { resource: ResourceItem }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  useEffect(() => trackPublicView("resource", resource.id), [resource.id]);
   const [activeShot, setActiveShot] = useState<number | null>(null), [imageState, setImageState] = useState<"loading" | "loaded" | "failed">("loading"), [imageAttempt, setImageAttempt] = useState(0);
   const imageRequest = useRef(0), galleryTrigger = useRef<HTMLElement | null>(null);
   const shots = (resource.screenshots ?? []).filter(shot => resourceMediaUrl(shot.url));
@@ -101,7 +103,7 @@ export default function ResourceArticle({ resource }: { resource: ResourceItem }
         <h1>{resource.title}</h1>
         <p className="resource-original-title">{resource.english ? `${resource.english} 汉化补丁 · ` : ""}新位元汉化组</p>
         {resource.version?.trim() && <dl className="resource-facts"><div><dt>版本</dt><dd>{resource.version.trim()}</dd></div></dl>}
-        <ResourceActions downloadUrl={resource.downloadUrl} downloadSha256={resource.downloadSha256} gameUrl={resource.gameUrl} articleUrl={resource.articleUrl}/>
+        <ResourceActions resourceId={resource.id} downloadUrl={resource.downloadUrl} downloadSha256={resource.downloadSha256} gameUrl={resource.gameUrl} articleUrl={resource.articleUrl}/>
       </div>
     </header>
 
